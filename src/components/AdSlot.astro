@@ -1,0 +1,14 @@
+---
+interface Props {
+  label?: string;
+  compact?: boolean;
+}
+
+const { label = "Ad slot placeholder", compact = false } = Astro.props;
+---
+
+<aside class:list={["ad-slot", compact && "ad-slot-compact"]} aria-label={label}>
+  <span>Monetization slot</span>
+  <strong>{label}</strong>
+  <small>Reserved for AdSense or affiliate placements after review.</small>
+</aside>

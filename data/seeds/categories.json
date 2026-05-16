@@ -1,0 +1,27 @@
+[
+  {
+    "slug": "ai-writing",
+    "name": "AI Writing Tools",
+    "description": "Editorial and campaign writing tools for landing pages, product launches, outreach, and blog workflows."
+  },
+  {
+    "slug": "ai-video",
+    "name": "AI Video Tools",
+    "description": "AI video editors and repurposing tools for creators, podcasts, demos, and short-form teams."
+  },
+  {
+    "slug": "ai-image",
+    "name": "AI Image Tools",
+    "description": "Image generation and enhancement tools for concepting, brand visuals, and creative production."
+  },
+  {
+    "slug": "ai-productivity",
+    "name": "AI Productivity Tools",
+    "description": "AI copilots for notes, planning, focus, and workflow automation across small teams."
+  },
+  {
+    "slug": "ai-developer",
+    "name": "AI Developer Tools",
+    "description": "Coding assistants and dev workflow tools for writing, reviewing, and shipping software faster."
+  }
+]

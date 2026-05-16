@@ -1,0 +1,21 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { site } from "../lib/site-data";
+
+const description = `Privacy policy for ${site.name} covering analytics, advertising, and affiliate click handling.`;
+---
+
+<BaseLayout title={`Privacy Policy | ${site.name}`} description={description} canonicalPath="/privacy-policy">
+  <section class="policy-shell">
+    <div class="eyebrow">Privacy policy</div>
+    <h1>Privacy, analytics, and monetization disclosures.</h1>
+    <p>
+      {site.name} may use analytics, advertising integrations, and outbound referral links to understand site usage and support operations.
+      When you connect production vendors, update this page with the exact processors, retention periods, and opt-out methods you use.
+    </p>
+    <div class="policy-meta">
+      <span>Advertising</span>
+      <span>Ad and affiliate disclosures supported</span>
+    </div>
+  </section>
+</BaseLayout>

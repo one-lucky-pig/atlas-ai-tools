@@ -1,0 +1,21 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { site } from "../lib/site-data";
+
+const description = `About ${site.name}, an editorial software directory built for category clustering, comparisons, and practical use-case guides.`;
+---
+
+<BaseLayout title={`About ${site.name}`} description={description} canonicalPath="/about">
+  <section class="policy-shell">
+    <div class="eyebrow">About</div>
+    <h1>Built like an editorial software desk, not a disposable listicle mill.</h1>
+    <p>
+      {site.name} is designed to help readers move from broad category research into tool reviews,
+      alternatives, and practical guides without hitting dead ends or copy-pasted fluff.
+    </p>
+    <div class="policy-meta">
+      <span>Focus: AI tools only</span>
+      <span>Language: English-first</span>
+    </div>
+  </section>
+</BaseLayout>

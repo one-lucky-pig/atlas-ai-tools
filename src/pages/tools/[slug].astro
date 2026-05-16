@@ -1,0 +1,85 @@
+---
+import AdSlot from "../../components/AdSlot.astro";
+import RelatedLinks from "../../components/RelatedLinks.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getPageBySlug, getToolBySlug, site, tools } from "../../lib/site-data";
+
+export function getStaticPaths() {
+  return tools.map((tool) => ({
+    params: { slug: tool.slug }
+  }));
+}
+
+const slug = Astro.params.slug ?? "";
+const page = getPageBySlug("tool", slug);
+const tool = getToolBySlug(slug);
+
+if (!page || !tool) {
+  throw new Error(`Unknown tool page: ${slug}`);
+}
+---
+
+<BaseLayout title={`${page.title} | ${site.name}`} description={page.metaDescription} canonicalPath={page.canonicalPath}>
+  <div class="article-grid">
+    <article class="article-shell">
+      <div class="eyebrow">Tool review</div>
+      <h1>{page.h1}</h1>
+      <p>{page.summary}</p>
+
+      <div class="fact-grid">
+        <div class="mini-card">
+          <span class="eyebrow">Pricing model</span>
+          <strong>{tool.pricingModel}</strong>
+          <small>Seeded from structured catalog data.</small>
+        </div>
+        <div class="mini-card">
+          <span class="eyebrow">Primary users</span>
+          <strong>{tool.targetUsers[0]}</strong>
+          <small>{tool.targetUsers.slice(1).join(", ")}</small>
+        </div>
+      </div>
+
+      <div class="cta-row">
+        <a href={tool.officialUrl} target="_blank" rel="nofollow sponsored noopener noreferrer">Visit official site</a>
+        <a class="secondary" href={`/categories/${tool.category}`}>Back to category</a>
+      </div>
+
+      {page.sections.map((section, index) => (
+        <section>
+          <h2>{section.heading}</h2>
+          {section.body.map((paragraph) => (
+            <p>{paragraph}</p>
+          ))}
+          {index === 0 && <AdSlot label="In-content review placement" compact />}
+        </section>
+      ))}
+
+      <section>
+        <h2>FAQ</h2>
+        <ul class="faq-list">
+          {page.faq.map((item) => (
+            <li>
+              <strong>{item.question}</strong>
+              <p>{item.answer}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </article>
+
+    <aside class="sidebar-stack">
+      <div class="article-shell">
+        <div class="section-kicker">Tool facts</div>
+        <ul class="facts-list">
+          <li><span>Category</span><strong>{tool.category.replace(/-/g, " ")}</strong></li>
+          <li><span>Subcategories</span><strong>{tool.subcategories.join(", ")}</strong></li>
+          <li><span>Use cases</span><strong>{tool.useCases[0]}</strong></li>
+        </ul>
+      </div>
+      <AdSlot label="Sidebar comparison block" />
+      <div class="article-shell">
+        <RelatedLinks links={page.relatedLinks} />
+      </div>
+    </aside>
+  </div>
+</BaseLayout>

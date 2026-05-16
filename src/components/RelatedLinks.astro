@@ -1,0 +1,18 @@
+---
+import type { RelatedLink } from "../lib/factory/types";
+
+interface Props {
+  links: RelatedLink[];
+}
+
+const { links } = Astro.props;
+---
+
+<section class="related-links">
+  <div class="section-kicker">Keep exploring</div>
+  <ul>
+    {links.map((link) => (
+      <li><a href={link.href}>{link.label}</a></li>
+    ))}
+  </ul>
+</section>

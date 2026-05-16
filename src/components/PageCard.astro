@@ -1,0 +1,20 @@
+---
+import type { GeneratedPage } from "../lib/factory/types";
+
+interface Props {
+  page: GeneratedPage;
+}
+
+const { page } = Astro.props;
+const routePrefix = page.pageType === "tool" ? "tools" : `${page.pageType}s`;
+---
+
+<article class="page-card">
+  <div class="eyebrow">{page.pageType}</div>
+  <h3><a href={`/${routePrefix}/${page.slug}`}>{page.title}</a></h3>
+  <p>{page.summary}</p>
+  <footer>
+    <span>{page.category.replace(/-/g, " ")}</span>
+    <a href={`/${routePrefix}/${page.slug}`}>Read page</a>
+  </footer>
+</article>

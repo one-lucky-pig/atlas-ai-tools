@@ -1,0 +1,19 @@
+---
+import type { GeneratedCategory } from "../lib/factory/types";
+
+interface Props {
+  category: GeneratedCategory;
+}
+
+const { category } = Astro.props;
+---
+
+<article class="category-card">
+  <div class="eyebrow">Category</div>
+  <h3><a href={`/categories/${category.slug}`}>{category.name}</a></h3>
+  <p>{category.description}</p>
+  <footer>
+    <span>{category.toolSlugs.length} seeded tools</span>
+    <a href={`/categories/${category.slug}`}>Explore cluster</a>
+  </footer>
+</article>

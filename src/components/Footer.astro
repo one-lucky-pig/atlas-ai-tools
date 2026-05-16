@@ -1,0 +1,26 @@
+---
+import { site } from "../lib/site-data";
+
+interface Props {
+  mode?: "default" | "studio";
+}
+
+const { mode = "default" } = Astro.props;
+---
+
+<footer class="site-footer">
+  <div>
+    <strong>{site.name}</strong>
+    <p>
+      {mode === "studio"
+        ? "Local studio for managing seeds, enrichments, and build tasks."
+        : site.description}
+    </p>
+  </div>
+  <div class="footer-links">
+    <a href="/about">About</a>
+    <a href="/contact">Contact</a>
+    <a href="/privacy-policy">Privacy Policy</a>
+    <a href="/terms">Terms</a>
+  </div>
+</footer>

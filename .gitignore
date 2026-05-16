@@ -1,0 +1,10 @@
+node_modules
+dist
+.astro
+.DS_Store
+.env
+runtime
+data/generated
+.superpowers
+.playwright-cli
+output/playwright

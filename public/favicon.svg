@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Atlas AI Tools">
+  <defs>
+    <linearGradient id="atlasGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5c8169" />
+      <stop offset="100%" stop-color="#23362b" />
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="18" fill="url(#atlasGradient)" />
+  <path d="M19 45 30 18h4l11 27h-6l-2.1-5.7H27.2L25 45Zm10-11h6.2L32 24.8Z" fill="#f7f3eb" />
+</svg>

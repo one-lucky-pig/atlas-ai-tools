@@ -1,0 +1,29 @@
+{
+  "name": "ai-tools-site-factory",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npm run generate && astro dev",
+    "generate": "tsx scripts/generate-site-data.ts",
+    "build": "npm run generate && astro build",
+    "preview": "astro preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "scheduler": "tsx scripts/run-scheduler.ts",
+    "studio:bridge": "tsx scripts/studio-bridge.ts",
+    "validate": "tsx scripts/validate-pipeline.ts"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.2",
+    "astro": "^6.3.3",
+    "dotenv": "^17.2.3",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "tsx": "^4.20.6",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.6"
+  }
+}

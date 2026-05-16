@@ -1,0 +1,18 @@
+[
+  {
+    "category": "ai-writing",
+    "indexedPages": 4,
+    "publishedPages": 12,
+    "lowQualitySampleRate": 0.08,
+    "pagesWithImpressions": 3,
+    "observationWindowDays": 14
+  },
+  {
+    "category": "ai-video",
+    "indexedPages": 2,
+    "publishedPages": 10,
+    "lowQualitySampleRate": 0.12,
+    "pagesWithImpressions": 1,
+    "observationWindowDays": 14
+  }
+]

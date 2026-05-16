@@ -1,0 +1,21 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { site } from "../lib/site-data";
+
+const description = `Contact ${site.name} for corrections, partnerships, or editorial questions.`;
+---
+
+<BaseLayout title={`Contact ${site.name}`} description={description} canonicalPath="/contact">
+  <section class="policy-shell">
+    <div class="eyebrow">Contact</div>
+    <h1>Corrections, partnerships, and editorial notes.</h1>
+    <p>
+      Use this address for factual corrections, product update requests, partnership inquiries, or
+      legal notices related to coverage on {site.name}. Editorial requests do not guarantee inclusion.
+    </p>
+    <div class="policy-meta">
+      <span>Email</span>
+      <span>{site.contactEmail}</span>
+    </div>
+  </section>
+</BaseLayout>

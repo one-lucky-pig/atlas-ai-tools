@@ -1,0 +1,79 @@
+---
+import AdSlot from "../../components/AdSlot.astro";
+import PageCard from "../../components/PageCard.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { categories, getCategoryBySlug, getCategoryPages, site } from "../../lib/site-data";
+
+export function getStaticPaths() {
+  return categories.map((category) => ({
+    params: { slug: category.slug }
+  }));
+}
+
+const slug = Astro.params.slug ?? "";
+const category = getCategoryBySlug(slug);
+
+if (!category) {
+  throw new Error(`Unknown category: ${slug}`);
+}
+
+const toolPages = getCategoryPages(slug, "tool");
+const comparisonPages = getCategoryPages(slug, "comparison");
+const guidePages = getCategoryPages(slug, "guide");
+---
+
+<BaseLayout title={`${category.name} | ${site.name}`} description={category.description} canonicalPath={`/categories/${category.slug}`}>
+  <section class="hero">
+    <div class="hero-panel">
+      <div class="eyebrow">Category cluster</div>
+      <h1>{category.name}</h1>
+      <p>{category.description}</p>
+      <div class="hero-actions">
+        <div class="stat-card">
+          <span class="section-kicker">Tool reviews</span>
+          <strong>{toolPages.length}</strong>
+          <small>Core pages carrying brand and workflow relevance.</small>
+        </div>
+        <div class="stat-card">
+          <span class="section-kicker">Support pages</span>
+          <strong>{comparisonPages.length + guidePages.length}</strong>
+          <small>Alternatives and use-case entries feeding deeper internal links.</small>
+        </div>
+      </div>
+    </div>
+    <aside class="info-panel">
+      <div class="section-kicker">Monetization zones</div>
+      <div class="policy-stack">
+        <AdSlot label="Category hero placement" compact />
+        <AdSlot label="Sidebar sponsor block" compact />
+      </div>
+    </aside>
+  </section>
+
+  <section class="section-block">
+    <h2>Tool pages</h2>
+    <div class="card-grid">
+      {toolPages.map((page) => (
+        <PageCard page={page} />
+      ))}
+    </div>
+  </section>
+
+  <section class="section-block">
+    <h2>Comparison pages</h2>
+    <div class="card-grid">
+      {comparisonPages.map((page) => (
+        <PageCard page={page} />
+      ))}
+    </div>
+  </section>
+
+  <section class="section-block">
+    <h2>Guide pages</h2>
+    <div class="card-grid">
+      {guidePages.map((page) => (
+        <PageCard page={page} />
+      ))}
+    </div>
+  </section>
+</BaseLayout>

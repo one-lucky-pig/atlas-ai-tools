@@ -1,0 +1,32 @@
+---
+import { site } from "../lib/site-data";
+
+interface Props {
+  mode?: "default" | "studio";
+}
+
+const { mode = "default" } = Astro.props;
+
+const navItems = [
+  { href: "/", label: "Home" },
+  { href: "/about", label: "About" },
+  { href: "/contact", label: "Contact" },
+  { href: "/privacy-policy", label: "Privacy" }
+];
+---
+
+<header class="site-header">
+  <a class="brand" href="/">
+    <span class="brand-mark">AT</span>
+    <span>
+      <strong>{site.name}</strong>
+      <small>{mode === "studio" ? "Local operations console" : "Editorial software field notes"}</small>
+    </span>
+  </a>
+  <nav class="site-nav" aria-label="Primary">
+    {navItems.map((item) => (
+      <a href={item.href}>{item.label}</a>
+    ))}
+  </nav>
+  <div class="header-badge">{mode === "studio" ? "Workspace ready" : "Programmatic SEO ready"}</div>
+</header>

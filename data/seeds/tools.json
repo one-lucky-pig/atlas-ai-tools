@@ -1,0 +1,112 @@
+[
+  {
+    "slug": "jasper",
+    "name": "Jasper",
+    "category": "ai-writing",
+    "subcategories": ["copywriting", "content-marketing"],
+    "officialUrl": "https://www.jasper.ai",
+    "pricingModel": "subscription",
+    "coreFeatures": ["brand voice", "campaign assets", "marketing templates"],
+    "useCases": ["landing pages", "product marketing", "campaign briefs"],
+    "targetUsers": ["marketers", "content teams"]
+  },
+  {
+    "slug": "copy-ai",
+    "name": "Copy.ai",
+    "category": "ai-writing",
+    "subcategories": ["sales-copy", "marketing-workflows"],
+    "officialUrl": "https://www.copy.ai",
+    "pricingModel": "freemium",
+    "coreFeatures": ["workflow templates", "outreach copy", "prompt workflows"],
+    "useCases": ["email outreach", "product marketing", "prospecting"],
+    "targetUsers": ["sales teams", "growth teams"]
+  },
+  {
+    "slug": "descript",
+    "name": "Descript",
+    "category": "ai-video",
+    "subcategories": ["video-editing", "podcasting"],
+    "officialUrl": "https://www.descript.com",
+    "pricingModel": "freemium",
+    "coreFeatures": ["text-based editing", "screen recording", "voice cleanup"],
+    "useCases": ["podcasts", "tutorial videos", "social repurposing"],
+    "targetUsers": ["creators", "small media teams"]
+  },
+  {
+    "slug": "runway",
+    "name": "Runway",
+    "category": "ai-video",
+    "subcategories": ["video-generation", "creative-editing"],
+    "officialUrl": "https://runwayml.com",
+    "pricingModel": "subscription",
+    "coreFeatures": ["video generation", "background editing", "motion tools"],
+    "useCases": ["storyboards", "social campaigns", "motion concepting"],
+    "targetUsers": ["creative teams", "video producers"]
+  },
+  {
+    "slug": "midjourney",
+    "name": "Midjourney",
+    "category": "ai-image",
+    "subcategories": ["image-generation", "concept-art"],
+    "officialUrl": "https://www.midjourney.com",
+    "pricingModel": "subscription",
+    "coreFeatures": ["prompt-based image generation", "style exploration", "upscaling"],
+    "useCases": ["concept art", "brand moodboards", "illustration drafts"],
+    "targetUsers": ["designers", "creative directors"]
+  },
+  {
+    "slug": "leonardo-ai",
+    "name": "Leonardo AI",
+    "category": "ai-image",
+    "subcategories": ["image-generation", "asset-creation"],
+    "officialUrl": "https://leonardo.ai",
+    "pricingModel": "freemium",
+    "coreFeatures": ["asset generation", "style presets", "canvas tools"],
+    "useCases": ["game assets", "marketing visuals", "product concepts"],
+    "targetUsers": ["designers", "indie teams"]
+  },
+  {
+    "slug": "notion-ai",
+    "name": "Notion AI",
+    "category": "ai-productivity",
+    "subcategories": ["notes", "knowledge-management"],
+    "officialUrl": "https://www.notion.so/product/ai",
+    "pricingModel": "subscription",
+    "coreFeatures": ["workspace search", "note drafting", "meeting summaries"],
+    "useCases": ["meeting notes", "team docs", "research synthesis"],
+    "targetUsers": ["knowledge workers", "small teams"]
+  },
+  {
+    "slug": "motion",
+    "name": "Motion",
+    "category": "ai-productivity",
+    "subcategories": ["planning", "time-management"],
+    "officialUrl": "https://www.usemotion.com",
+    "pricingModel": "subscription",
+    "coreFeatures": ["calendar planning", "task scheduling", "focus blocks"],
+    "useCases": ["weekly planning", "deep work", "team coordination"],
+    "targetUsers": ["operators", "founders"]
+  },
+  {
+    "slug": "cursor",
+    "name": "Cursor",
+    "category": "ai-developer",
+    "subcategories": ["coding-assistants", "editor"],
+    "officialUrl": "https://cursor.com",
+    "pricingModel": "subscription",
+    "coreFeatures": ["code generation", "repo chat", "multi-file editing"],
+    "useCases": ["feature shipping", "refactors", "bug fixing"],
+    "targetUsers": ["developers", "product engineers"]
+  },
+  {
+    "slug": "continue",
+    "name": "Continue",
+    "category": "ai-developer",
+    "subcategories": ["coding-assistants", "open-source"],
+    "officialUrl": "https://continue.dev",
+    "pricingModel": "open-source",
+    "coreFeatures": ["IDE integration", "custom model routing", "prompt templates"],
+    "useCases": ["pair programming", "code review", "custom workflows"],
+    "targetUsers": ["developers", "platform teams"]
+  }
+]

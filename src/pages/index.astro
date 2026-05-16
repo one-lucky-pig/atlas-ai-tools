@@ -1,0 +1,89 @@
+---
+import CategoryCard from "../components/CategoryCard.astro";
+import PageCard from "../components/PageCard.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { categories, getFeaturedPages, pages, site, tools } from "../lib/site-data";
+
+const featured = getFeaturedPages(4);
+---
+
+<BaseLayout title={`${site.name} | Editorial AI tool comparisons`} description={site.description}>
+  <section class="hero">
+    <div class="hero-panel">
+      <div class="eyebrow">English-first AI software directory</div>
+      <h1>Find the right AI tool without swimming through recycled listicles.</h1>
+      <p>
+        {site.name} groups software by real workflow clusters, then expands them into
+        review pages, alternatives, and use-case guides that stay useful even as the catalog grows.
+      </p>
+      <div class="hero-actions">
+        <div class="stat-card">
+          <span class="section-kicker">Current footprint</span>
+          <strong>{pages.length} pages</strong>
+          <small>Seeded from structured tool data, not loose article drafts.</small>
+        </div>
+        <div class="stat-card">
+          <span class="section-kicker">Clusters</span>
+          <strong>{categories.length} categories</strong>
+          <small>Writing, video, image, productivity, and developer workflows.</small>
+        </div>
+      </div>
+    </div>
+    <aside class="info-panel">
+      <div class="section-kicker">Why this structure works</div>
+      <div class="policy-stack">
+        <div class="mini-card">
+          <span class="eyebrow">Category hubs</span>
+          <strong>{categories.length}</strong>
+          <small>Navigation centers that hold topical relevance together.</small>
+        </div>
+        <div class="mini-card">
+          <span class="eyebrow">Tool profiles</span>
+          <strong>{tools.length}</strong>
+          <small>Product pages with use cases, pricing models, and related links.</small>
+        </div>
+        <div class="mini-card">
+          <span class="eyebrow">Commercial-intent pages</span>
+          <strong>{featured.comparisons.length + featured.guides.length}</strong>
+          <small>Alternatives and use-case pages built for long-tail entry points.</small>
+        </div>
+      </div>
+    </aside>
+  </section>
+
+  <section class="section-block">
+    <h2>Category clusters</h2>
+    <p class="section-lead">
+      Start with the workflow family, then branch into tool reviews, alternatives, and practical guides.
+    </p>
+    <div class="card-grid">
+      {categories.map((category) => (
+        <CategoryCard category={category} />
+      ))}
+    </div>
+  </section>
+
+  <section class="section-block">
+    <h2>Featured tool reviews</h2>
+    <p class="section-lead">
+      Core pages anchor the site with product-specific summaries before comparisons and tutorials fan out.
+    </p>
+    <div class="card-grid">
+      {featured.tools.map((page) => (
+        <PageCard page={page} />
+      ))}
+    </div>
+  </section>
+
+  <section class="section-block">
+    <h2>Long-tail entry pages</h2>
+    <p class="section-lead">
+      Comparison and guide pages catch more specific intent without breaking the site’s topical structure.
+    </p>
+    <div class="card-grid">
+      {featured.comparisons.concat(featured.guides).map((page) => (
+        <PageCard page={page} />
+      ))}
+    </div>
+  </section>
+</BaseLayout>

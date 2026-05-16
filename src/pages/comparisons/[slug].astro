@@ -1,0 +1,58 @@
+---
+import AdSlot from "../../components/AdSlot.astro";
+import RelatedLinks from "../../components/RelatedLinks.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getPageBySlug, getPagesByType, site } from "../../lib/site-data";
+
+export function getStaticPaths() {
+  return getPagesByType("comparison").map((page) => ({
+    params: { slug: page.slug }
+  }));
+}
+
+const slug = Astro.params.slug ?? "";
+const page = getPageBySlug("comparison", slug);
+
+if (!page) {
+  throw new Error(`Unknown comparison page: ${slug}`);
+}
+---
+
+<BaseLayout title={`${page.title} | ${site.name}`} description={page.metaDescription} canonicalPath={page.canonicalPath}>
+  <div class="article-grid">
+    <article class="article-shell">
+      <div class="eyebrow">Comparison page</div>
+      <h1>{page.h1}</h1>
+      <p>{page.summary}</p>
+
+      {page.sections.map((section, index) => (
+        <section>
+          <h2>{section.heading}</h2>
+          {section.body.map((paragraph) => (
+            <p>{paragraph}</p>
+          ))}
+          {index === 0 && <AdSlot label="Mid-article comparison placement" compact />}
+        </section>
+      ))}
+
+      <section>
+        <h2>FAQ</h2>
+        <ul class="faq-list">
+          {page.faq.map((item) => (
+            <li>
+              <strong>{item.question}</strong>
+              <p>{item.answer}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </article>
+
+    <aside class="sidebar-stack">
+      <AdSlot label="Comparison sidebar placement" />
+      <div class="article-shell">
+        <RelatedLinks links={page.relatedLinks} />
+      </div>
+    </aside>
+  </div>
+</BaseLayout>

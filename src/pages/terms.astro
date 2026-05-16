@@ -1,0 +1,21 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { site } from "../lib/site-data";
+
+const description = `Terms of use for ${site.name} and its editorial AI software directory.`;
+---
+
+<BaseLayout title={`Terms | ${site.name}`} description={description} canonicalPath="/terms">
+  <section class="policy-shell">
+    <div class="eyebrow">Terms</div>
+    <h1>Terms for using the directory and its editorial content.</h1>
+    <p>
+      Content published on {site.name} is provided for informational purposes and may change as tools, pricing,
+      ownership, and policies evolve. Readers should verify critical vendor details directly with each product site.
+    </p>
+    <div class="policy-meta">
+      <span>Legal entity</span>
+      <span>{site.legalEntity}</span>
+    </div>
+  </section>
+</BaseLayout>

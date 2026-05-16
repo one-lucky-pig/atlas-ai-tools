@@ -1,0 +1,29 @@
+{
+  "weeklyCadence": {
+    "week1": {
+      "categoryPages": 5,
+      "toolPages": 10,
+      "comparisonPages": 5,
+      "guidePages": 5
+    },
+    "week2": {
+      "toolPages": 10,
+      "comparisonPages": 10,
+      "guidePages": 10
+    },
+    "week3": {
+      "expandWinningCategoriesOnly": true,
+      "guidePages": 12,
+      "comparisonPages": 12
+    },
+    "week4": {
+      "slowOrPauseLowPerformers": true,
+      "focusOnIndexedClusters": true
+    }
+  },
+  "qualityThresholds": {
+    "maxLowQualitySampleRate": 0.25,
+    "minIndexRate": 0.2,
+    "minImpressionCoverage": 0.2
+  }
+}
