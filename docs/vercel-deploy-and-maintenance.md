@@ -21,6 +21,10 @@ flowchart LR
 
 ### 1. 本地准备
 
+实际截图：
+
+![本地内容工坊后台](./assets/studio-final-pass.png)
+
 1. 进入项目目录：
 
 ```bash
@@ -67,6 +71,10 @@ cat ~/.ssh/id_rsa.pub
 - `New SSH key`
 
 把公钥粘进去保存。
+
+实际截图：
+
+![GitHub 仓库已成功推送](./assets/github-repo-page.png)
 
 ### 3. 在 Vercel 导入现有仓库
 
@@ -124,6 +132,10 @@ Could not resolve "../../data/generated/enrichments.json"
 - [atlas-ai-tools.vercel.app](https://atlas-ai-tools.vercel.app)
 
 现在这个地址已经是项目默认线上地址。
+
+实际截图：
+
+![线上站点首页示意](./assets/vercel-live-site.png)
 
 ## 二、后续怎么维护和上传
 
