@@ -1,7 +1,7 @@
 {
   "name": "Atlas AI Tools",
-  "domain": "example.com",
-  "url": "https://example.com",
+  "domain": "atlas-ai-tools.vercel.app",
+  "url": "https://atlas-ai-tools.vercel.app",
   "description": "An editorial AI tools directory for teams comparing practical software, use cases, and alternatives.",
   "contactEmail": "qdfjc2020@gmail.com",
   "legalEntity": "Atlas AI Tools"
