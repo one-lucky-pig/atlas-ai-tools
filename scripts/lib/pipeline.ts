@@ -40,6 +40,7 @@ async function generateEnrichments(
   const freshEnrichments: Record<string, ToolEnrichment> = {};
 
   if (!provider) {
+    await saveEnrichmentCache(enrichmentCacheFile, cachedEnrichments);
     return {
       provider: "fallback",
       enrichments: cachedEnrichments,
