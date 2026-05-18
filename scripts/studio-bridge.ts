@@ -6,10 +6,22 @@ import { spawn } from "node:child_process";
 import { getStudioJobDefinition, listStudioJobs, type StudioJobId } from "./lib/studio-jobs";
 import { enrichToolForStudio } from "./lib/studio-enrichment";
 import type { CategorySeed, ToolSeed } from "../src/lib/factory/types";
+import {
+  fetchWorkflowTopics,
+  generateWorkflowDrafts,
+  getWorkflowOverviewData,
+  publishWorkflowDrafts,
+  reviewWorkflowDrafts,
+  runWorkflowAutomationOnce,
+  saveWorkflowAutomationSettings,
+  shortlistWorkflowTopics
+} from "./lib/workflow-engine";
+import { loadWorkflowStoreSnapshot } from "./lib/workflow-store";
 
 const port = Number(process.env.STUDIO_BRIDGE_PORT ?? "4323");
 const projectRoot = process.cwd();
 let busy = false;
+let automationCheckBusy = false;
 
 function isAllowedOrigin(origin: string | undefined): boolean {
   if (!origin) {
@@ -135,6 +147,22 @@ const server = http.createServer(async (request, response) => {
     return;
   }
 
+  if (request.method === "GET" && request.url === "/workflow/overview") {
+    try {
+      writeJson(response, 200, await getWorkflowOverviewData(), origin);
+    } catch (error) {
+      writeJson(
+        response,
+        500,
+        {
+          error: error instanceof Error ? error.message : String(error)
+        },
+        origin
+      );
+    }
+    return;
+  }
+
   if (request.method === "POST" && request.url === "/run") {
     if (busy) {
       writeJson(response, 409, { error: "A studio job is already running." }, origin);
@@ -163,6 +191,158 @@ const server = http.createServer(async (request, response) => {
         },
         origin
       );
+    }
+    return;
+  }
+
+  if (request.method === "POST" && request.url === "/topics/fetch") {
+    if (busy) {
+      writeJson(response, 409, { error: "A studio operation is already running." }, origin);
+      return;
+    }
+
+    try {
+      const raw = await readRequestBody(request);
+      const payload = JSON.parse(raw || "{}") as {
+        limit?: number;
+        minHeatScore?: number;
+        minRelevanceScore?: number;
+      };
+
+      busy = true;
+      const topics = await fetchWorkflowTopics({
+        limit: payload.limit ?? 12,
+        minHeatScore: payload.minHeatScore,
+        minRelevanceScore: payload.minRelevanceScore
+      });
+      busy = false;
+      writeJson(response, 200, { success: true, topics }, origin);
+    } catch (error) {
+      busy = false;
+      writeJson(response, 500, { error: error instanceof Error ? error.message : String(error) }, origin);
+    }
+    return;
+  }
+
+  if (request.method === "POST" && request.url === "/topics/shortlist") {
+    if (busy) {
+      writeJson(response, 409, { error: "A studio operation is already running." }, origin);
+      return;
+    }
+
+    try {
+      const raw = await readRequestBody(request);
+      const payload = JSON.parse(raw || "{}") as { ids?: string[] };
+      busy = true;
+      const overview = await shortlistWorkflowTopics(payload.ids ?? []);
+      busy = false;
+      writeJson(response, 200, { success: true, ...overview }, origin);
+    } catch (error) {
+      busy = false;
+      writeJson(response, 500, { error: error instanceof Error ? error.message : String(error) }, origin);
+    }
+    return;
+  }
+
+  if (request.method === "POST" && request.url === "/drafts/generate") {
+    if (busy) {
+      writeJson(response, 409, { error: "A studio operation is already running." }, origin);
+      return;
+    }
+
+    try {
+      const raw = await readRequestBody(request);
+      const payload = JSON.parse(raw || "{}") as { ids?: string[] };
+      busy = true;
+      const overview = await generateWorkflowDrafts(payload.ids ?? []);
+      busy = false;
+      writeJson(response, 200, { success: true, ...overview }, origin);
+    } catch (error) {
+      busy = false;
+      writeJson(response, 500, { error: error instanceof Error ? error.message : String(error) }, origin);
+    }
+    return;
+  }
+
+  if (request.method === "POST" && request.url === "/drafts/review") {
+    if (busy) {
+      writeJson(response, 409, { error: "A studio operation is already running." }, origin);
+      return;
+    }
+
+    try {
+      const raw = await readRequestBody(request);
+      const payload = JSON.parse(raw || "{}") as {
+        ids?: string[];
+        action?: "mark-reviewed" | "approve" | "reopen" | "update";
+        patch?: Record<string, unknown>;
+      };
+      if (!payload.action) {
+        writeJson(response, 400, { error: "Missing review action." }, origin);
+        return;
+      }
+
+      busy = true;
+      const overview = await reviewWorkflowDrafts({
+        ids: payload.ids ?? [],
+        action: payload.action,
+        patch: payload.patch as never
+      });
+      busy = false;
+      writeJson(response, 200, { success: true, ...overview }, origin);
+    } catch (error) {
+      busy = false;
+      writeJson(response, 500, { error: error instanceof Error ? error.message : String(error) }, origin);
+    }
+    return;
+  }
+
+  if (request.method === "POST" && request.url === "/publish") {
+    if (busy) {
+      writeJson(response, 409, { error: "A studio operation is already running." }, origin);
+      return;
+    }
+
+    try {
+      const raw = await readRequestBody(request);
+      const payload = JSON.parse(raw || "{}") as { ids?: string[] };
+      busy = true;
+      const overview = await publishWorkflowDrafts(payload.ids ?? []);
+      busy = false;
+      writeJson(response, 200, { success: true, ...overview }, origin);
+    } catch (error) {
+      busy = false;
+      writeJson(response, 500, { error: error instanceof Error ? error.message : String(error) }, origin);
+    }
+    return;
+  }
+
+  if (request.method === "POST" && request.url === "/automation/settings") {
+    try {
+      const raw = await readRequestBody(request);
+      const payload = JSON.parse(raw || "{}") as Record<string, unknown>;
+      const automation = await saveWorkflowAutomationSettings(payload as never);
+      writeJson(response, 200, { success: true, automation }, origin);
+    } catch (error) {
+      writeJson(response, 500, { error: error instanceof Error ? error.message : String(error) }, origin);
+    }
+    return;
+  }
+
+  if (request.method === "POST" && request.url === "/automation/run-once") {
+    if (busy) {
+      writeJson(response, 409, { error: "A studio operation is already running." }, origin);
+      return;
+    }
+
+    try {
+      busy = true;
+      const overview = await runWorkflowAutomationOnce();
+      busy = false;
+      writeJson(response, 200, { success: true, ...overview }, origin);
+    } catch (error) {
+      busy = false;
+      writeJson(response, 500, { error: error instanceof Error ? error.message : String(error) }, origin);
     }
     return;
   }
@@ -220,6 +400,45 @@ const server = http.createServer(async (request, response) => {
   writeJson(response, 404, { error: "Not found." }, origin);
 });
 
+async function maybeRunAutomationTick(): Promise<void> {
+  if (busy || automationCheckBusy) {
+    return;
+  }
+
+  automationCheckBusy = true;
+
+  try {
+    const snapshot = await loadWorkflowStoreSnapshot();
+    const { enabled, intervalMinutes } = snapshot.automation.settings;
+
+    if (!enabled) {
+      automationCheckBusy = false;
+      return;
+    }
+
+    const lastRunAt = snapshot.automation.lastRunAt ? Date.parse(snapshot.automation.lastRunAt) : 0;
+    const dueAt = lastRunAt + intervalMinutes * 60 * 1000;
+    if (Date.now() < dueAt) {
+      automationCheckBusy = false;
+      return;
+    }
+
+    busy = true;
+    await runWorkflowAutomationOnce();
+    busy = false;
+  } catch (error) {
+    busy = false;
+    console.error("[studio-bridge] automation tick failed", error);
+  } finally {
+    automationCheckBusy = false;
+  }
+}
+
 server.listen(port, "127.0.0.1", () => {
   console.log(`Studio bridge listening on http://127.0.0.1:${port}`);
 });
+
+void maybeRunAutomationTick();
+setInterval(() => {
+  void maybeRunAutomationTick();
+}, 60 * 1000);

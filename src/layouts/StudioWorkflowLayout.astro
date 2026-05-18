@@ -1,0 +1,392 @@
+---
+import BaseLayout from "./BaseLayout.astro";
+
+interface Props {
+  title: string;
+  description: string;
+  currentStep:
+    | "overview"
+    | "topics"
+    | "selection"
+    | "drafts"
+    | "review"
+    | "publish"
+    | "automation"
+    | "workspace";
+}
+
+const { title, description, currentStep } = Astro.props;
+
+const steps = [
+  { key: "overview", href: "/studio", label: "总览", badge: "all" },
+  { key: "topics", href: "/studio/topics", label: "1. 抓热点", badge: "fetched" },
+  { key: "selection", href: "/studio/selection", label: "2. 选题池", badge: "shortlisted" },
+  { key: "drafts", href: "/studio/drafts", label: "3. 草稿生成", badge: "drafted" },
+  { key: "review", href: "/studio/review", label: "4. 审核质检", badge: "reviewed" },
+  { key: "publish", href: "/studio/publish", label: "5. 发布队列", badge: "approved" },
+  { key: "automation", href: "/studio/automation", label: "6. 自动运行", badge: "auto" },
+  { key: "workspace", href: "/studio/workspace", label: "旧版工作台", badge: "legacy" }
+];
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  canonicalPath={currentStep === "overview" ? "/studio" : `/studio/${currentStep}`}
+  robotsContent="noindex, nofollow"
+  mode="studio"
+>
+  <div class="workflow-shell">
+    <aside class="workflow-sidebar">
+      <div class="workflow-sidebar-head">
+        <div class="section-kicker">Studio v2</div>
+        <h1>内容工作流</h1>
+        <p>先看全景，再进入单独步骤页处理细节，不把所有事情混在一起。</p>
+      </div>
+      <nav class="workflow-nav" aria-label="Studio workflow steps">
+        {steps.map((step) => (
+          <a href={step.href} class:list={["workflow-nav-item", currentStep === step.key && "is-active"]}>
+            <span>{step.label}</span>
+            <strong data-workflow-badge={step.badge}>-</strong>
+          </a>
+        ))}
+      </nav>
+    </aside>
+
+    <section class="workflow-main">
+      <header class="workflow-topbar">
+        <div class="workflow-status-card">
+          <span class="eyebrow">Current mode</span>
+          <strong data-workflow-status>等待桥接连接</strong>
+          <small data-workflow-status-detail>先运行 <code>npm run studio:bridge</code>，再在各步骤页推进流程。</small>
+        </div>
+        <div class="workflow-metric-grid">
+          <div class="workflow-metric-card">
+            <span class="eyebrow">待发布</span>
+            <strong data-workflow-badge="approved">0</strong>
+          </div>
+          <div class="workflow-metric-card">
+            <span class="eyebrow">最近失败</span>
+            <strong data-workflow-failures>0</strong>
+          </div>
+          <div class="workflow-metric-card">
+            <span class="eyebrow">最后发布</span>
+            <strong data-workflow-last-published>尚未发布</strong>
+          </div>
+        </div>
+      </header>
+
+      <main class="workflow-content">
+        <slot />
+      </main>
+    </section>
+  </div>
+
+  <style>
+    .workflow-shell {
+      display: grid;
+      grid-template-columns: 300px minmax(0, 1fr);
+      gap: 1rem;
+      padding-top: 1rem;
+    }
+
+    .workflow-sidebar,
+    .workflow-topbar,
+    .workflow-panel {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 24px;
+      box-shadow: 0 14px 32px rgba(15, 23, 42, 0.04);
+    }
+
+    .workflow-sidebar {
+      padding: 1.2rem;
+      display: grid;
+      gap: 1rem;
+      align-self: start;
+      position: sticky;
+      top: 1rem;
+    }
+
+    .workflow-sidebar-head h1,
+    .workflow-page-head h2,
+    .workflow-step-card h3 {
+      margin: 0.2rem 0 0.4rem;
+      font-size: clamp(1.6rem, 3vw, 2.4rem);
+      line-height: 1;
+    }
+
+    .workflow-sidebar-head p,
+    .workflow-page-head p,
+    .workflow-hint {
+      margin: 0;
+      color: #4b5563;
+      line-height: 1.7;
+    }
+
+    .workflow-nav {
+      display: grid;
+      gap: 0.6rem;
+    }
+
+    .workflow-nav-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: center;
+      text-decoration: none;
+      padding: 0.9rem 1rem;
+      border-radius: 18px;
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .workflow-nav-item:hover {
+      transform: translateY(-1px);
+      border-color: #cbd5e1;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+    }
+
+    .workflow-nav-item.is-active {
+      background: linear-gradient(180deg, #f0f7ff 0%, #edf5ff 100%);
+      border-color: #93c5fd;
+    }
+
+    .workflow-nav-item strong,
+    .workflow-metric-card strong,
+    .workflow-status-card strong {
+      font-size: 1rem;
+    }
+
+    .workflow-main {
+      display: grid;
+      gap: 1rem;
+      min-width: 0;
+    }
+
+    .workflow-topbar {
+      padding: 1rem;
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.9fr);
+      gap: 1rem;
+    }
+
+    .workflow-status-card,
+    .workflow-metric-grid,
+    .workflow-step-grid,
+    .workflow-panel-grid,
+    .workflow-action-row,
+    .workflow-list {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .workflow-status-card {
+      padding: 1rem 1.1rem;
+      border-radius: 18px;
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+    }
+
+    .workflow-metric-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .workflow-metric-card {
+      padding: 1rem;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+      border: 1px solid #e5e7eb;
+    }
+
+    .workflow-content {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .workflow-panel {
+      padding: 1.2rem;
+    }
+
+    .workflow-page-head,
+    .workflow-panel-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: start;
+      margin-bottom: 1rem;
+    }
+
+    .workflow-step-grid {
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+
+    .workflow-step-card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 20px;
+      padding: 1rem;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.04);
+    }
+
+    .workflow-step-card footer,
+    .workflow-list-item footer {
+      margin-top: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .workflow-list-item {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 18px;
+      padding: 1rem;
+    }
+
+    .workflow-list-item h3,
+    .workflow-list-item h4 {
+      margin: 0 0 0.45rem;
+      font-size: 1.15rem;
+      line-height: 1.35;
+    }
+
+    .workflow-list-item p,
+    .workflow-list-item li,
+    .workflow-list-item small {
+      color: #4b5563;
+      line-height: 1.65;
+    }
+
+    .workflow-chip-row,
+    .workflow-meta-row,
+    .workflow-action-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+    }
+
+    .workflow-chip,
+    .workflow-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.42rem 0.7rem;
+      border-radius: 999px;
+      background: #f8fafc;
+      border: 1px solid #dbe4ee;
+      font-size: 0.88rem;
+      color: #334155;
+    }
+
+    .workflow-button,
+    .workflow-link-button {
+      border: 1px solid #cbd5e1;
+      background: #fff;
+      color: #0f172a;
+      border-radius: 14px;
+      padding: 0.8rem 1rem;
+      font: inherit;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+    }
+
+    .workflow-button:hover,
+    .workflow-link-button:hover {
+      transform: translateY(-1px);
+      border-color: #94a3b8;
+      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06);
+    }
+
+    .workflow-button-primary {
+      background: linear-gradient(135deg, #1d4ed8, #2563eb);
+      color: #fff;
+      border-color: transparent;
+    }
+
+    .workflow-button-danger {
+      background: #fff5f5;
+      color: #b42318;
+      border-color: #fecaca;
+    }
+
+    .workflow-button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .workflow-form-grid {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .workflow-field {
+      display: grid;
+      gap: 0.45rem;
+    }
+
+    .workflow-field span {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: #334155;
+    }
+
+    .workflow-field input,
+    .workflow-field textarea,
+    .workflow-field select {
+      width: 100%;
+      border-radius: 14px;
+      border: 1px solid #dbe4ee;
+      background: #fff;
+      padding: 0.78rem 0.9rem;
+      font: inherit;
+      color: #0f172a;
+    }
+
+    .workflow-field textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    .workflow-log {
+      white-space: pre-wrap;
+      background: #0f172a;
+      color: #e2e8f0;
+      border-radius: 18px;
+      padding: 1rem;
+      min-height: 180px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      overflow: auto;
+    }
+
+    .workflow-empty {
+      border: 1px dashed #cbd5e1;
+      background: #f8fafc;
+      border-radius: 20px;
+      padding: 1.2rem;
+      color: #475569;
+    }
+
+    @media (max-width: 1080px) {
+      .workflow-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .workflow-sidebar {
+        position: static;
+      }
+
+      .workflow-topbar {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</BaseLayout>

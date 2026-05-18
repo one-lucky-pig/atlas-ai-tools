@@ -1,0 +1,42 @@
+---
+import StudioWorkflowLayout from "../../layouts/StudioWorkflowLayout.astro";
+---
+
+<StudioWorkflowLayout
+  title="Studio v2 草稿生成 | Atlas AI Tools"
+  description="查看已经生成的草稿和失败项，必要时重新生成。"
+  currentStep="drafts"
+>
+  <section class="workflow-panel">
+    <div class="workflow-page-head">
+      <div>
+        <div class="section-kicker">Step 3</div>
+        <h2>草稿生成</h2>
+        <p>这一页只关心草稿有没有产出来，以及失败的项能不能重新拉起。</p>
+      </div>
+      <button class="workflow-button workflow-button-primary" id="drafts-regenerate-button">重新生成已勾选草稿</button>
+    </div>
+    <div class="workflow-form-grid">
+      <label class="workflow-field">
+        <span>筛选</span>
+        <input id="drafts-filter" type="search" placeholder="按标题、摘要或来源过滤草稿" />
+      </label>
+    </div>
+  </section>
+
+  <section class="workflow-panel">
+    <div class="workflow-panel-head">
+      <div>
+        <div class="section-kicker">Draft queue</div>
+        <h2>草稿队列</h2>
+      </div>
+    </div>
+    <div class="workflow-list" id="drafts-list"></div>
+  </section>
+
+  <script type="module">
+    import { initStudioWorkflowPage } from "../../lib/studio-workflow-client";
+
+    void initStudioWorkflowPage("drafts");
+  </script>
+</StudioWorkflowLayout>

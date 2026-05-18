@@ -1,0 +1,19 @@
+---
+import type { PublishedDispatch } from "../lib/workflow";
+
+interface Props {
+  dispatch: PublishedDispatch;
+}
+
+const { dispatch } = Astro.props;
+---
+
+<article class="page-card">
+  <div class="eyebrow">dispatch</div>
+  <h3><a href={`/dispatches/${dispatch.slug}`}>{dispatch.title}</a></h3>
+  <p>{dispatch.summary}</p>
+  <footer>
+    <span>{dispatch.source}</span>
+    <a href={`/dispatches/${dispatch.slug}`}>Read dispatch</a>
+  </footer>
+</article>

@@ -1,0 +1,43 @@
+---
+import StudioWorkflowLayout from "../../layouts/StudioWorkflowLayout.astro";
+---
+
+<StudioWorkflowLayout
+  title="Studio v2 选题池 | Atlas AI Tools"
+  description="从热点池里挑出真正要做的题目，再推进到草稿生成。"
+  currentStep="selection"
+>
+  <section class="workflow-panel">
+    <div class="workflow-page-head">
+      <div>
+        <div class="section-kicker">Step 2</div>
+        <h2>选题池</h2>
+        <p>这里只看已经进入短名单的题。勾选你要推进的题，然后直接批量生成草稿。</p>
+      </div>
+      <button class="workflow-button workflow-button-primary" id="selection-generate-button">为已勾选选题生成草稿</button>
+    </div>
+
+    <div class="workflow-form-grid">
+      <label class="workflow-field">
+        <span>筛选</span>
+        <input id="selection-filter" type="search" placeholder="按标题或来源过滤短名单" />
+      </label>
+    </div>
+  </section>
+
+  <section class="workflow-panel">
+    <div class="workflow-panel-head">
+      <div>
+        <div class="section-kicker">Shortlisted</div>
+        <h2>待推进的选题</h2>
+      </div>
+    </div>
+    <div class="workflow-list" id="selection-topic-list"></div>
+  </section>
+
+  <script type="module">
+    import { initStudioWorkflowPage } from "../../lib/studio-workflow-client";
+
+    void initStudioWorkflowPage("selection");
+  </script>
+</StudioWorkflowLayout>

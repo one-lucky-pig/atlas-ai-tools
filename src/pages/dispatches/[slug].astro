@@ -1,0 +1,93 @@
+---
+import AdSlot from "../../components/AdSlot.astro";
+import RelatedLinks from "../../components/RelatedLinks.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { dispatches, getDispatchBySlug } from "../../lib/editorial";
+import { site } from "../../lib/site-data";
+
+export function getStaticPaths() {
+  return dispatches.map((dispatch) => ({
+    params: { slug: dispatch.slug }
+  }));
+}
+
+const slug = Astro.params.slug ?? "";
+const dispatch = getDispatchBySlug(slug);
+
+if (!dispatch) {
+  throw new Error(`Unknown dispatch page: ${slug}`);
+}
+
+const relatedLinks = dispatch.internalLinks.concat([
+  {
+    label: "Back to dispatches",
+    href: "/dispatches"
+  }
+]);
+---
+
+<BaseLayout title={`${dispatch.seoTitle} | ${site.name}`} description={dispatch.metaDescription} canonicalPath={`/dispatches/${dispatch.slug}`}>
+  <div class="article-grid">
+    <article class="article-shell">
+      <div class="eyebrow">Dispatch</div>
+      <h1>{dispatch.title}</h1>
+      <p>{dispatch.summary}</p>
+
+      <div class="fact-grid">
+        <div class="mini-card">
+          <span class="eyebrow">Source</span>
+          <strong>{dispatch.source}</strong>
+          <small>Reviewed before publishing.</small>
+        </div>
+        <div class="mini-card">
+          <span class="eyebrow">Published</span>
+          <strong>{new Date(dispatch.publishedAt).toLocaleDateString("en-US")}</strong>
+          <small>Hot-topic dispatch with manual approval.</small>
+        </div>
+      </div>
+
+      {dispatch.bodySections.map((section, index) => (
+        <section>
+          <h2>{section.heading}</h2>
+          {section.paragraphs.map((paragraph) => (
+            <p>{paragraph}</p>
+          ))}
+          {index === 0 && <AdSlot label="Dispatch in-content placement" compact />}
+        </section>
+      ))}
+
+      {dispatch.faq.length > 0 && (
+        <section>
+          <h2>FAQ</h2>
+          <ul class="faq-list">
+            {dispatch.faq.map((item) => (
+              <li>
+                <strong>{item.question}</strong>
+                <p>{item.answer}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <section>
+        <h2>Sources</h2>
+        <ul class="faq-list">
+          {dispatch.sourceCitations.map((citation) => (
+            <li>
+              <strong>{citation.label}</strong>
+              <p><a href={citation.url} target="_blank" rel="noopener noreferrer nofollow">{citation.url}</a></p>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </article>
+
+    <aside class="sidebar-stack">
+      <AdSlot label="Dispatch sidebar placement" />
+      <div class="article-shell">
+        <RelatedLinks links={relatedLinks} />
+      </div>
+    </aside>
+  </div>
+</BaseLayout>

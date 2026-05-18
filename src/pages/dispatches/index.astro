@@ -1,0 +1,47 @@
+---
+import DispatchCard from "../../components/DispatchCard.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { dispatches, getRecentDispatches } from "../../lib/editorial";
+import { site } from "../../lib/site-data";
+
+const recentDispatches = getRecentDispatches(12);
+const description = `Fresh software dispatches from ${site.name}, covering launches, trends, and notable product moves.`;
+---
+
+<BaseLayout title={`Dispatches | ${site.name}`} description={description} canonicalPath="/dispatches">
+  <section class="hero">
+    <div class="hero-panel">
+      <div class="eyebrow">Editorial dispatches</div>
+      <h1>Track launches, trend turns, and notable product moves.</h1>
+      <p>
+        This stream is where approved hot-topic stories go live after the Studio workflow clears
+        review, quality checks, and publish gating.
+      </p>
+      <div class="hero-actions">
+        <div class="stat-card">
+          <span class="section-kicker">Live dispatches</span>
+          <strong>{dispatches.length}</strong>
+          <small>Published through the manual approval flow.</small>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-block">
+    <h2>Latest dispatches</h2>
+    <p class="section-lead">
+      Each story starts as a candidate, becomes a reviewed draft, then only ships after explicit approval.
+    </p>
+    <div class="card-grid">
+      {recentDispatches.length > 0 ? (
+        recentDispatches.map((dispatch) => <DispatchCard dispatch={dispatch} />)
+      ) : (
+        <article class="page-card">
+          <div class="eyebrow">No dispatches yet</div>
+          <h3>The workflow is ready for your first approved story.</h3>
+          <p>Use Studio v2 to fetch topics, generate drafts, and publish approved stories here.</p>
+        </article>
+      )}
+    </div>
+  </section>
+</BaseLayout>

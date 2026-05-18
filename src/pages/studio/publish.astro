@@ -1,0 +1,48 @@
+---
+import StudioWorkflowLayout from "../../layouts/StudioWorkflowLayout.astro";
+---
+
+<StudioWorkflowLayout
+  title="Studio v2 发布队列 | Atlas AI Tools"
+  description="只发布已批准且已勾选的草稿，过程可见、可回放。"
+  currentStep="publish"
+>
+  <section class="workflow-panel">
+    <div class="workflow-page-head">
+      <div>
+        <div class="section-kicker">Step 5</div>
+        <h2>发布队列</h2>
+        <p>这里只处理通过审核的草稿。勾选后，一键执行生成、校验、构建、提交和推送。</p>
+      </div>
+      <button class="workflow-button workflow-button-primary" id="publish-run-button">发布已勾选草稿</button>
+    </div>
+  </section>
+
+  <div class="workflow-panel-grid" style="grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);">
+    <section class="workflow-panel">
+      <div class="workflow-panel-head">
+        <div>
+          <div class="section-kicker">Approved queue</div>
+          <h2>待发布草稿</h2>
+        </div>
+      </div>
+      <div class="workflow-list" id="publish-list"></div>
+    </section>
+
+    <section class="workflow-panel">
+      <div class="workflow-panel-head">
+        <div>
+          <div class="section-kicker">Publish log</div>
+          <h2>发布回放</h2>
+        </div>
+      </div>
+      <div class="workflow-list" id="publish-log-list"></div>
+    </section>
+  </div>
+
+  <script type="module">
+    import { initStudioWorkflowPage } from "../../lib/studio-workflow-client";
+
+    void initStudioWorkflowPage("publish");
+  </script>
+</StudioWorkflowLayout>

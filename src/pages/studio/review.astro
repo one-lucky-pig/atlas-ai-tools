@@ -1,0 +1,92 @@
+---
+import StudioWorkflowLayout from "../../layouts/StudioWorkflowLayout.astro";
+---
+
+<StudioWorkflowLayout
+  title="Studio v2 审核质检 | Atlas AI Tools"
+  description="逐篇检查草稿内容、来源、内链和元信息，再决定是否批准发布。"
+  currentStep="review"
+>
+  <section class="workflow-panel">
+    <div class="workflow-page-head">
+      <div>
+        <div class="section-kicker">Step 4</div>
+        <h2>审核与质量闸门</h2>
+        <p>你在这里看正文、来源、SEO 信息和风险提示。先改，再标记已审，最后批准。</p>
+      </div>
+      <div class="workflow-action-row">
+        <button class="workflow-button" id="review-mark-reviewed-button">标记已审</button>
+        <button class="workflow-button workflow-button-primary" id="review-approve-button">批准发布</button>
+        <button class="workflow-button" id="review-reopen-button">打回草稿</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="workflow-panel-grid" style="grid-template-columns: 360px minmax(0, 1fr);">
+    <section class="workflow-panel">
+      <div class="workflow-panel-head">
+        <div>
+          <div class="section-kicker">Draft list</div>
+          <h2>待审核草稿</h2>
+        </div>
+      </div>
+      <div class="workflow-list" id="review-list"></div>
+    </section>
+
+    <section class="workflow-panel">
+      <div class="workflow-panel-head">
+        <div>
+          <div class="section-kicker">Draft editor</div>
+          <h2>当前草稿详情</h2>
+        </div>
+        <button class="workflow-button workflow-button-primary" id="review-save-button">保存当前修改</button>
+      </div>
+
+      <input id="review-current-id" type="hidden" />
+      <div class="workflow-form-grid">
+        <label class="workflow-field">
+          <span>工作标题</span>
+          <input id="review-working-title" type="text" />
+        </label>
+        <label class="workflow-field">
+          <span>SEO 标题</span>
+          <input id="review-seo-title" type="text" />
+        </label>
+        <label class="workflow-field" style="grid-column: 1 / -1;">
+          <span>Meta Description</span>
+          <textarea id="review-meta-description"></textarea>
+        </label>
+        <label class="workflow-field" style="grid-column: 1 / -1;">
+          <span>大纲（每行一条）</span>
+          <textarea id="review-outline"></textarea>
+        </label>
+        <label class="workflow-field" style="grid-column: 1 / -1;">
+          <span>正文（格式：每节以 `## 标题` 开头）</span>
+          <textarea id="review-body"></textarea>
+        </label>
+        <label class="workflow-field">
+          <span>FAQ（每行：问题 | 答案）</span>
+          <textarea id="review-faq"></textarea>
+        </label>
+        <label class="workflow-field">
+          <span>内链（每行：标题 | /path）</span>
+          <textarea id="review-links"></textarea>
+        </label>
+        <label class="workflow-field">
+          <span>来源（每行：标题 | URL）</span>
+          <textarea id="review-citations"></textarea>
+        </label>
+        <label class="workflow-field">
+          <span>质量备注（每行一条）</span>
+          <textarea id="review-quality-notes"></textarea>
+        </label>
+      </div>
+    </section>
+  </div>
+
+  <script type="module">
+    import { initStudioWorkflowPage } from "../../lib/studio-workflow-client";
+
+    void initStudioWorkflowPage("review");
+  </script>
+</StudioWorkflowLayout>

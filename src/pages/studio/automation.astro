@@ -1,0 +1,66 @@
+---
+import StudioWorkflowLayout from "../../layouts/StudioWorkflowLayout.astro";
+---
+
+<StudioWorkflowLayout
+  title="Studio v2 自动运行 | Atlas AI Tools"
+  description="配置 24 小时自动抓热点和草稿生成，但不自动发布。"
+  currentStep="automation"
+>
+  <section class="workflow-panel">
+    <div class="workflow-page-head">
+      <div>
+        <div class="section-kicker">Step 6</div>
+        <h2>自动运行</h2>
+        <p>夜里自动抓热点、排队、写草稿，但绝不绕过人工发布口。你只需要第二天处理草稿池。</p>
+      </div>
+      <div class="workflow-action-row">
+        <button class="workflow-button" id="automation-save-button">保存设置</button>
+        <button class="workflow-button workflow-button-primary" id="automation-run-button">立即执行一次</button>
+      </div>
+    </div>
+
+    <div class="workflow-form-grid">
+      <label class="workflow-field">
+        <span>自动抓取开关</span>
+        <input id="automation-enabled" type="checkbox" />
+      </label>
+      <label class="workflow-field">
+        <span>运行频率（分钟）</span>
+        <input id="automation-interval" type="number" min="5" value="60" />
+      </label>
+      <label class="workflow-field">
+        <span>单次抓取上限</span>
+        <input id="automation-fetch-limit" type="number" min="1" value="12" />
+      </label>
+      <label class="workflow-field">
+        <span>单次生成上限</span>
+        <input id="automation-generate-limit" type="number" min="1" value="4" />
+      </label>
+      <label class="workflow-field">
+        <span>最低热度阈值</span>
+        <input id="automation-min-heat" type="number" min="0" value="50" />
+      </label>
+      <label class="workflow-field">
+        <span>最低相关度阈值</span>
+        <input id="automation-min-relevance" type="number" min="0" value="50" />
+      </label>
+    </div>
+  </section>
+
+  <section class="workflow-panel">
+    <div class="workflow-panel-head">
+      <div>
+        <div class="section-kicker">Run history</div>
+        <h2>自动任务记录</h2>
+      </div>
+    </div>
+    <div class="workflow-list" id="automation-log-list"></div>
+  </section>
+
+  <script type="module">
+    import { initStudioWorkflowPage } from "../../lib/studio-workflow-client";
+
+    void initStudioWorkflowPage("automation");
+  </script>
+</StudioWorkflowLayout>

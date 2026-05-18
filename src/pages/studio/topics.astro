@@ -1,0 +1,58 @@
+---
+import StudioWorkflowLayout from "../../layouts/StudioWorkflowLayout.astro";
+---
+
+<StudioWorkflowLayout
+  title="Studio v2 抓热点 | Atlas AI Tools"
+  description="从外部内容服务抓回热点候选，筛选后送入选题池。"
+  currentStep="topics"
+>
+  <section class="workflow-panel">
+    <div class="workflow-page-head">
+      <div>
+        <div class="section-kicker">Step 1</div>
+        <h2>抓热点</h2>
+        <p>先拉回候选热点，确认它们值得做，再批量送进选题池。</p>
+      </div>
+      <div class="workflow-action-row">
+        <button class="workflow-button workflow-button-primary" id="topics-fetch-button">抓取最新热点</button>
+        <button class="workflow-button" id="topics-shortlist-button">加入选题池</button>
+      </div>
+    </div>
+
+    <div class="workflow-form-grid">
+      <label class="workflow-field">
+        <span>单次抓取上限</span>
+        <input id="topics-fetch-limit" type="number" min="1" value="12" />
+      </label>
+      <label class="workflow-field">
+        <span>最低热度</span>
+        <input id="topics-min-heat" type="number" min="0" value="50" />
+      </label>
+      <label class="workflow-field">
+        <span>最低相关度</span>
+        <input id="topics-min-relevance" type="number" min="0" value="50" />
+      </label>
+      <label class="workflow-field">
+        <span>筛选</span>
+        <input id="topics-filter" type="search" placeholder="按标题、摘要或来源过滤" />
+      </label>
+    </div>
+  </section>
+
+  <section class="workflow-panel">
+    <div class="workflow-panel-head">
+      <div>
+        <div class="section-kicker">Fetched candidates</div>
+        <h2>热点候选池</h2>
+      </div>
+    </div>
+    <div class="workflow-list" id="topics-candidate-list"></div>
+  </section>
+
+  <script type="module">
+    import { initStudioWorkflowPage } from "../../lib/studio-workflow-client";
+
+    void initStudioWorkflowPage("topics");
+  </script>
+</StudioWorkflowLayout>

@@ -1,10 +1,13 @@
 ---
 import CategoryCard from "../components/CategoryCard.astro";
+import DispatchCard from "../components/DispatchCard.astro";
 import PageCard from "../components/PageCard.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { getRecentDispatches } from "../lib/editorial";
 import { categories, getFeaturedPages, pages, site, tools } from "../lib/site-data";
 
 const featured = getFeaturedPages(4);
+const recentDispatches = getRecentDispatches(3);
 ---
 
 <BaseLayout title={`${site.name} | Editorial AI tool comparisons`} description={site.description}>
@@ -84,6 +87,28 @@ const featured = getFeaturedPages(4);
       {featured.comparisons.concat(featured.guides).map((page) => (
         <PageCard page={page} />
       ))}
+    </div>
+  </section>
+
+  <section class="section-block">
+    <h2>Editorial dispatches</h2>
+    <p class="section-lead">
+      Fast-turn stories for launches and trend shifts, published only after Studio review and manual approval.
+    </p>
+    <div class="card-grid">
+      {recentDispatches.length > 0 ? (
+        recentDispatches.map((dispatch) => <DispatchCard dispatch={dispatch} />)
+      ) : (
+        <article class="page-card">
+          <div class="eyebrow">workflow ready</div>
+          <h3>Hot-topic dispatches will appear here after approval.</h3>
+          <p>Use Studio v2 to fetch topics, generate drafts, and publish reviewed stories.</p>
+          <footer>
+            <span>Studio</span>
+            <a href="/studio">Open workflow</a>
+          </footer>
+        </article>
+      )}
     </div>
   </section>
 </BaseLayout>

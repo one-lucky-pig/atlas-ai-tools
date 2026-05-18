@@ -1,0 +1,2246 @@
+---
+import siteConfig from "../../../data/site.json";
+import categorySeeds from "../../../data/seeds/categories.json";
+import toolSeeds from "../../../data/seeds/tools.json";
+import enrichmentCache from "../../../data/generated/enrichments.json";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { createStudioState } from "../../lib/studio";
+import type { CategorySeed, SiteConfig, ToolEnrichment, ToolSeed } from "../../lib/factory/types";
+
+const initialState = createStudioState({
+  site: siteConfig as SiteConfig,
+  categories: categorySeeds as CategorySeed[],
+  tools: toolSeeds as ToolSeed[],
+  enrichments: enrichmentCache as Record<string, ToolEnrichment>
+});
+const studioBridgeUrl = "http://127.0.0.1:4323";
+---
+
+<BaseLayout
+  title="旧版工作台 | Atlas AI Tools"
+  description="旧版中文本地后台，用于维护站点配置、分类和工具种子，并导出可回写的 JSON。"
+  canonicalPath="/studio/workspace"
+  robotsContent="noindex, nofollow"
+  mode="studio"
+>
+  <div class="studio-page">
+    <section class="studio-command-surface">
+      <div class="eyebrow">New workflow</div>
+      <h1>开始管理你的内容工厂</h1>
+      <div class="studio-commandbar">
+        <span class="studio-commandbar-mark">+</span>
+        <input id="studio-global-search" type="search" placeholder="搜索工具、分类或输入一个新工具名..." />
+        <button class="studio-button studio-button-accent" id="studio-quick-create-tool">快速新增工具</button>
+      </div>
+      <div class="studio-shortcuts">
+        <button class="studio-chip studio-chip-button" data-scroll-target="studio-panel-site">站点配置</button>
+        <button class="studio-chip studio-chip-button" data-scroll-target="studio-panel-resources">资源区</button>
+        <button class="studio-chip studio-chip-button" data-scroll-target="studio-panel-ai">AI 增强</button>
+        <button class="studio-chip studio-chip-button" data-scroll-target="studio-panel-tasks">本地任务</button>
+        <button class="studio-chip studio-chip-button" data-scroll-target="studio-panel-export">导出 JSON</button>
+      </div>
+    </section>
+
+    <section class="studio-shell">
+      <div class="studio-topbar">
+        <div class="studio-status" id="studio-status"></div>
+        <div class="studio-actions">
+          <button class="studio-button" id="reset-studio">恢复项目种子</button>
+          <button class="studio-button studio-button-ghost" id="clear-draft">清空本地草稿</button>
+          <button class="studio-button studio-button-accent" id="download-all">下载全部 JSON</button>
+        </div>
+      </div>
+
+      <div class="studio-console">
+        <div class="studio-main-column">
+          <section class="studio-panel" id="studio-panel-site">
+            <div class="studio-panel-head">
+              <div>
+                <div class="section-kicker">Site settings</div>
+                <h2>站点配置</h2>
+              </div>
+            </div>
+            <div class="studio-form studio-form-two">
+              <label class="studio-field">
+                <span>站点名称</span>
+                <input id="site-name" type="text" />
+              </label>
+              <label class="studio-field">
+                <span>域名</span>
+                <input id="site-domain" type="text" />
+              </label>
+              <label class="studio-field">
+                <span>完整 URL</span>
+                <input id="site-url" type="url" />
+              </label>
+              <label class="studio-field">
+                <span>联系邮箱</span>
+                <input id="site-contact-email" type="email" />
+              </label>
+              <label class="studio-field">
+                <span>法务实体</span>
+                <input id="site-legal-entity" type="text" />
+              </label>
+              <label class="studio-field">
+                <span>AdSense 发布商 ID</span>
+                <input id="site-adsense-publisher-id" type="text" placeholder="ca-pub-xxxxxxxxxxxxxxxx" />
+              </label>
+              <label class="studio-field studio-field-full">
+                <span>Google Search Console 验证码</span>
+                <input id="site-google-site-verification" type="text" placeholder="填 content 的值，不要整行 meta 标签" />
+              </label>
+              <label class="studio-field studio-field-full">
+                <span>站点描述</span>
+                <textarea id="site-description" rows="3"></textarea>
+              </label>
+            </div>
+          </section>
+
+          <section class="studio-panel" id="studio-panel-resources">
+            <div class="studio-panel-head">
+              <div>
+                <div class="section-kicker">Resources</div>
+                <h2>分类与工具资源</h2>
+              </div>
+            </div>
+            <div class="studio-resource-grid">
+              <div class="studio-resource-pane">
+                <div class="studio-subhead">
+                  <div>
+                    <div class="section-kicker">分类</div>
+                    <h3>分类列表</h3>
+                  </div>
+                  <button class="studio-button studio-button-small" id="add-category">新增分类</button>
+                </div>
+                <div class="studio-list" id="category-list"></div>
+              </div>
+
+              <div class="studio-resource-pane">
+                <div class="studio-subhead">
+                  <div>
+                    <div class="section-kicker">工具</div>
+                    <h3>工具列表</h3>
+                  </div>
+                  <button class="studio-button studio-button-small" id="add-tool">新增工具</button>
+                </div>
+                <label class="studio-field">
+                  <span>搜索工具</span>
+                  <input id="tool-search" type="search" placeholder="按名称或 slug 搜索" />
+                </label>
+                <div class="studio-list studio-list-tools" id="tool-list"></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="studio-panel" id="studio-panel-editors">
+            <div class="studio-editor-grid">
+              <div class="studio-editor-pane">
+                <div class="studio-panel-head">
+                  <div>
+                    <div class="section-kicker">Category editor</div>
+                    <h2 id="category-editor-title">选择一个分类</h2>
+                  </div>
+                  <button class="studio-button studio-button-ghost studio-button-small" id="delete-category">删除当前分类</button>
+                </div>
+                <div class="studio-form">
+                  <label class="studio-field">
+                    <span>slug</span>
+                    <input id="category-slug" type="text" />
+                  </label>
+                  <label class="studio-field">
+                    <span>名称</span>
+                    <input id="category-name" type="text" />
+                  </label>
+                  <label class="studio-field">
+                    <span>描述</span>
+                    <textarea id="category-description" rows="4"></textarea>
+                  </label>
+                </div>
+              </div>
+
+              <div class="studio-editor-pane studio-editor-pane-wide">
+                <div class="studio-panel-head">
+                  <div>
+                    <div class="section-kicker">Tool editor</div>
+                    <h2 id="tool-editor-title">选择一个工具</h2>
+                  </div>
+                  <button class="studio-button studio-button-ghost studio-button-small" id="delete-tool">删除当前工具</button>
+                </div>
+                <div class="studio-form studio-form-two">
+                  <label class="studio-field">
+                    <span>slug</span>
+                    <input id="tool-slug" type="text" />
+                  </label>
+                  <label class="studio-field">
+                    <span>工具名</span>
+                    <input id="tool-name" type="text" />
+                  </label>
+                  <label class="studio-field">
+                    <span>主分类</span>
+                    <select id="tool-category"></select>
+                  </label>
+                  <label class="studio-field">
+                    <span>官网链接</span>
+                    <input id="tool-official-url" type="url" />
+                  </label>
+                  <label class="studio-field">
+                    <span>定价模型</span>
+                    <input id="tool-pricing-model" type="text" />
+                  </label>
+                  <label class="studio-field">
+                    <span>子分类</span>
+                    <textarea id="tool-subcategories" rows="4" placeholder="一行一个"></textarea>
+                  </label>
+                  <label class="studio-field">
+                    <span>核心功能</span>
+                    <textarea id="tool-core-features" rows="4" placeholder="一行一个"></textarea>
+                  </label>
+                  <label class="studio-field">
+                    <span>使用场景</span>
+                    <textarea id="tool-use-cases" rows="4" placeholder="一行一个"></textarea>
+                  </label>
+                  <label class="studio-field studio-field-full">
+                    <span>目标用户</span>
+                    <textarea id="tool-target-users" rows="3" placeholder="一行一个"></textarea>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="studio-panel" id="studio-panel-import">
+            <div class="studio-split-grid">
+              <div class="studio-split-pane">
+                <div class="studio-subhead">
+                  <div>
+                    <div class="section-kicker">Quick entry</div>
+                    <h3>批量新增工具</h3>
+                  </div>
+                  <button class="studio-button studio-button-small" id="bulk-add-tools">批量导入工具行</button>
+                </div>
+                <div class="studio-form">
+                  <label class="studio-field">
+                    <span>默认分类</span>
+                    <select id="bulk-category"></select>
+                  </label>
+                  <label class="studio-field">
+                    <span>批量录入文本</span>
+                    <textarea
+                      id="bulk-tools-input"
+                      rows="8"
+                      placeholder="每行一个工具，建议格式：工具名|slug|分类slug|官网链接|定价模型|子分类1,子分类2|核心功能1,核心功能2|场景1,场景2|用户1,用户2"
+                    ></textarea>
+                  </label>
+                  <p class="section-lead">
+                    支持 `|` 或制表符分隔。第三列分类可留空，留空时会使用上面的默认分类。
+                  </p>
+                </div>
+              </div>
+
+              <div class="studio-split-pane">
+                <div class="studio-subhead">
+                  <div>
+                    <div class="section-kicker">Import JSON</div>
+                    <h3>从现有文件或外部表格回填</h3>
+                  </div>
+                  <div class="studio-tabbar" id="import-tabs"></div>
+                </div>
+                <div class="studio-actions studio-actions-inline">
+                  <button class="studio-button studio-button-small" id="apply-import">应用当前导入</button>
+                  <button class="studio-button studio-button-small studio-button-ghost" id="clear-import">清空导入框</button>
+                </div>
+                <label class="studio-field">
+                  <span id="import-label">导入内容</span>
+                  <textarea id="import-input" rows="10" placeholder="把 JSON 粘贴到这里"></textarea>
+                </label>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <aside class="studio-side-column">
+          <section class="studio-panel" id="studio-panel-readiness">
+            <div class="studio-panel-head">
+              <div>
+                <div class="section-kicker">Release checks</div>
+                <h2>发布前检查</h2>
+              </div>
+            </div>
+            <div class="studio-checklist" id="readiness-list"></div>
+          </section>
+
+          <section class="studio-panel" id="studio-panel-files">
+            <div class="studio-panel-head">
+              <div>
+                <div class="section-kicker">Local files</div>
+                <h2>直接保存到项目 JSON</h2>
+              </div>
+              <button class="studio-button studio-button-small" id="save-bound-files">保存已绑定文件</button>
+            </div>
+            <div class="studio-file-grid" id="file-handle-list"></div>
+            <p class="section-lead">
+              首次需要手动绑定文件。若浏览器支持，会尝试记住你选择的文件句柄；不支持时仍可继续使用复制/下载导出。
+            </p>
+          </section>
+
+          <section class="studio-panel" id="studio-panel-tasks">
+            <div class="studio-panel-head">
+              <div>
+                <div class="section-kicker">Local bridge</div>
+                <h2>一键触发生成与构建</h2>
+              </div>
+              <button class="studio-button studio-button-small studio-button-ghost" id="refresh-bridge">刷新连接</button>
+            </div>
+            <div class="studio-status" id="bridge-status"></div>
+            <div class="studio-actions studio-actions-stack" id="bridge-job-buttons"></div>
+            <label class="studio-field">
+              <span>最近一次任务输出</span>
+              <textarea id="bridge-log" rows="10" readonly></textarea>
+            </label>
+            <p class="section-lead">
+              先在另一个终端运行 <code>npm run studio:bridge</code>，然后你就可以直接在这里触发生成、校验、构建和单次调度。
+            </p>
+          </section>
+
+          <section class="studio-panel" id="studio-panel-ai">
+            <div class="studio-panel-head">
+              <div>
+                <div class="section-kicker">AI enrichment</div>
+                <h2>当前工具的补全结果</h2>
+              </div>
+              <div class="studio-actions studio-actions-inline">
+                <button class="studio-button studio-button-small" id="enrich-current-tool">AI 补全当前工具</button>
+                <button class="studio-button studio-button-small studio-button-ghost" id="force-enrich-current-tool">强制重新生成</button>
+              </div>
+            </div>
+            <div class="studio-status" id="enrichment-status"></div>
+            <div class="studio-form studio-form-two">
+              <label class="studio-field studio-field-full">
+                <span>摘要</span>
+                <textarea id="enrichment-summary" rows="3" placeholder="一句到两句说明这个工具最适合什么人、做什么。"></textarea>
+              </label>
+              <label class="studio-field studio-field-full">
+                <span>Meta Description</span>
+                <textarea id="enrichment-meta-description" rows="2" placeholder="搜索结果摘要。"></textarea>
+              </label>
+              <label class="studio-field">
+                <span>优点</span>
+                <textarea id="enrichment-pros" rows="4" placeholder="一行一个"></textarea>
+              </label>
+              <label class="studio-field">
+                <span>缺点</span>
+                <textarea id="enrichment-cons" rows="4" placeholder="一行一个"></textarea>
+              </label>
+              <label class="studio-field">
+                <span>替代品 slug</span>
+                <textarea id="enrichment-alternatives" rows="4" placeholder="一行一个"></textarea>
+              </label>
+              <label class="studio-field">
+                <span>选题角度</span>
+                <textarea id="enrichment-editorial-angles" rows="4" placeholder="一行一个"></textarea>
+              </label>
+              <label class="studio-field">
+                <span>FAQ</span>
+                <textarea id="enrichment-faq" rows="5" placeholder="每行一组：问题 | 答案"></textarea>
+              </label>
+              <label class="studio-field">
+                <span>内链建议</span>
+                <textarea id="enrichment-links" rows="5" placeholder="每行一组：标题 | /path"></textarea>
+              </label>
+            </div>
+            <div class="studio-actions studio-actions-inline">
+              <button class="studio-button studio-button-small" id="apply-enrichment-form">应用结构化增强资料</button>
+              <button class="studio-button studio-button-small studio-button-ghost" id="apply-enrichment-json">应用增强 JSON</button>
+            </div>
+            <label class="studio-field">
+              <span>增强资料 JSON（高级模式）</span>
+              <textarea id="enrichment-json" rows="10" placeholder="为当前工具生成后，会在这里显示 enrichment JSON。"></textarea>
+            </label>
+          </section>
+
+          <section class="studio-panel" id="studio-panel-export">
+            <div class="studio-panel-head">
+              <div>
+                <div class="section-kicker">Export</div>
+                <h2>JSON 导出区</h2>
+              </div>
+              <div class="studio-tabbar" id="export-tabs"></div>
+            </div>
+            <div class="studio-actions studio-actions-inline">
+              <button class="studio-button studio-button-small" id="copy-export">复制当前 JSON</button>
+              <button class="studio-button studio-button-small studio-button-ghost" id="download-export">下载当前 JSON</button>
+            </div>
+            <label class="studio-field">
+              <span id="export-label">导出内容</span>
+              <textarea id="export-output" rows="12" readonly></textarea>
+            </label>
+          </section>
+        </aside>
+      </div>
+    </section>
+  </div>
+
+  <style>
+    .studio-page {
+      display: grid;
+      gap: 1rem;
+      padding-top: 1rem;
+      color: #111827;
+    }
+
+    .studio-shell {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .studio-command-surface,
+    .studio-panel {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 20px;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.03);
+      padding: 1.25rem;
+    }
+
+    .studio-command-surface {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .studio-command-surface h1 {
+      margin: 0.15rem 0 0.45rem;
+      font-size: clamp(2.6rem, 5vw, 4.2rem);
+      line-height: 0.95;
+      font-weight: 700;
+    }
+
+    .studio-command-surface p {
+      margin: 0;
+      max-width: 58ch;
+      line-height: 1.7;
+      color: #4b5563;
+    }
+
+    .studio-commandbar {
+      display: grid;
+      grid-template-columns: 56px minmax(0, 1fr) auto;
+      align-items: center;
+      border: 1px solid #e5e7eb;
+      border-radius: 18px;
+      min-height: 72px;
+      background: #ffffff;
+      overflow: hidden;
+    }
+
+    .studio-commandbar-mark {
+      display: grid;
+      place-items: center;
+      font-size: 1.5rem;
+      color: #9ca3af;
+      border-right: 1px solid #e5e7eb;
+      height: 100%;
+    }
+
+    .studio-commandbar input {
+      border: 0;
+      background: transparent;
+      font-size: 1.1rem;
+      padding: 0 1rem;
+      min-width: 0;
+    }
+
+    .studio-commandbar input:focus {
+      outline: none;
+      box-shadow: none;
+    }
+
+    .studio-commandbar .studio-button {
+      margin-right: 0.75rem;
+    }
+
+    .studio-shortcuts {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .studio-chip-button {
+      cursor: pointer;
+      transition: border-color 140ms ease, transform 140ms ease;
+    }
+
+    .studio-chip-button:hover {
+      transform: translateY(-1px);
+      border-color: rgba(59, 130, 246, 0.28);
+    }
+
+    .studio-topbar {
+      position: sticky;
+      top: 5.5rem;
+      z-index: 12;
+      padding: 0.85rem 1rem;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid #e5e7eb;
+      border-radius: 18px;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .studio-console {
+      display: grid;
+      grid-template-columns: minmax(0, 1.18fr) 400px;
+      gap: 1rem;
+      align-items: start;
+    }
+
+    .studio-main-column,
+    .studio-side-column {
+      display: grid;
+      gap: 1rem;
+      align-content: start;
+    }
+
+    .studio-side-column {
+      position: sticky;
+      top: 10.6rem;
+    }
+
+    .studio-resource-grid,
+    .studio-editor-grid,
+    .studio-split-grid,
+    .studio-main-grid {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .studio-resource-grid,
+    .studio-editor-grid,
+    .studio-split-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .studio-editor-pane-wide {
+      grid-column: 1 / -1;
+    }
+
+    .studio-subhead {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      gap: 1rem;
+      margin-bottom: 0.85rem;
+      flex-wrap: wrap;
+    }
+
+    .studio-subhead h3 {
+      margin: 0.1rem 0 0;
+      font-size: 1.12rem;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+    }
+
+    .studio-side-column .studio-panel,
+    .studio-resource-pane,
+    .studio-editor-pane,
+    .studio-split-pane {
+      background: #ffffff;
+    }
+
+    .studio-summary-card small,
+    .studio-side-card li,
+    .studio-side-card p,
+    .studio-panel p,
+    .studio-panel li {
+      color: #6b7280;
+      line-height: 1.6;
+    }
+
+    .studio-status,
+    .studio-actions,
+    .studio-tabbar,
+    .studio-actions-inline {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .studio-actions-stack {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.65rem;
+    }
+
+    .studio-chip {
+      padding: 0.65rem 0.9rem;
+      border-radius: 999px;
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      color: #6b7280;
+      font-size: 0.92rem;
+    }
+
+    .studio-chip-danger {
+      color: #b45309;
+      border-color: rgba(245, 158, 11, 0.26);
+      background: #fff7ed;
+    }
+
+    .studio-panel {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 20px;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.03);
+      padding: 1.2rem;
+    }
+
+    .studio-panel-span-2 {
+      grid-column: 1 / -1;
+    }
+
+    .studio-panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .studio-panel-head h2 {
+      margin: 0.15rem 0 0;
+      font-size: 1.28rem;
+      font-weight: 600;
+    }
+
+    .studio-list {
+      display: grid;
+      gap: 0.7rem;
+      max-height: 20rem;
+      overflow: auto;
+      padding-right: 0.2rem;
+    }
+
+    .studio-list-item {
+      width: 100%;
+      text-align: left;
+      border: 1px solid #e5e7eb;
+      background: #fbfbfc;
+      border-radius: 14px;
+      padding: 0.85rem;
+      cursor: pointer;
+      transition: transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+      color: #111827;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .studio-list-item:hover,
+    .studio-list-item-active {
+      transform: translateY(-1px);
+      border-color: rgba(59, 130, 246, 0.28);
+      box-shadow: 0 10px 24px rgba(59, 130, 246, 0.08);
+    }
+
+    .studio-list-item-active {
+      background: linear-gradient(180deg, #ffffff, #f8fbff);
+    }
+
+    .studio-list-item-active::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: #2563eb;
+    }
+
+    .studio-list-item strong {
+      display: block;
+      font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+      font-size: 1rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .studio-list-item small {
+      display: block;
+      color: #6b7280;
+      line-height: 1.5;
+    }
+
+    .studio-list-item-meta {
+      display: flex;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+      margin: 0.35rem 0 0.45rem;
+    }
+
+    .studio-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      min-height: 28px;
+      padding: 0.3rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid #e5e7eb;
+      background: #ffffff;
+      color: #6b7280;
+      font-size: 0.78rem;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .studio-file-grid {
+      display: grid;
+      gap: 0.85rem;
+    }
+
+    .studio-file-card {
+      padding: 1rem;
+      border-radius: 16px;
+      border: 1px solid #e5e7eb;
+      background: #fbfbfc;
+      display: grid;
+      gap: 0.65rem;
+    }
+
+    .studio-file-card strong {
+      display: block;
+      font-size: 1.05rem;
+      font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+    }
+
+    .studio-file-card small {
+      color: #6b7280;
+      line-height: 1.55;
+    }
+
+    .studio-checklist {
+      display: grid;
+      gap: 0.8rem;
+    }
+
+    .studio-check {
+      padding: 0.95rem 1rem;
+      border-radius: 16px;
+      border: 1px solid #e5e7eb;
+      background: #fbfbfc;
+    }
+
+    .studio-check strong {
+      display: block;
+      margin-bottom: 0.3rem;
+    }
+
+    .studio-check small {
+      color: #6b7280;
+      line-height: 1.55;
+    }
+
+    .studio-check-ok {
+      border-color: rgba(59, 130, 246, 0.16);
+    }
+
+    .studio-check-warn {
+      border-color: rgba(245, 158, 11, 0.24);
+      background: #fff7ed;
+    }
+
+    .studio-form {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .studio-form-two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .studio-field {
+      display: grid;
+      gap: 0.45rem;
+    }
+
+    .studio-field-full {
+      grid-column: 1 / -1;
+    }
+
+    .studio-field span {
+      color: #6b7280;
+      font-size: 0.88rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .studio-field input,
+    .studio-field select,
+    .studio-field textarea {
+      width: 100%;
+      border-radius: 14px;
+      border: 1px solid #e5e7eb;
+      background: #ffffff;
+      padding: 0.88rem 0.95rem;
+      font: inherit;
+      color: #111827;
+      resize: vertical;
+    }
+
+    .studio-field input:focus,
+    .studio-field select:focus,
+    .studio-field textarea:focus {
+      outline: none;
+      border-color: rgba(59, 130, 246, 0.5);
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.08);
+    }
+
+    .studio-button {
+      border: 0;
+      border-radius: 999px;
+      padding: 0.82rem 1.1rem;
+      background: #111827;
+      color: #fff;
+      font: inherit;
+      cursor: pointer;
+      transition: transform 140ms ease, opacity 140ms ease;
+    }
+
+    .studio-button:hover {
+      transform: translateY(-1px);
+    }
+
+    .studio-button-ghost {
+      background: #ffffff;
+      color: #374151;
+      border: 1px solid #e5e7eb;
+    }
+
+    .studio-button-accent {
+      background: linear-gradient(135deg, #111827, #374151);
+      box-shadow: 0 10px 18px rgba(99, 102, 241, 0.12);
+    }
+
+    .studio-button-small {
+      padding: 0.62rem 0.92rem;
+      font-size: 0.92rem;
+    }
+
+    .studio-tab {
+      border: 1px solid #e5e7eb;
+      background: #ffffff;
+      color: #6b7280;
+    }
+
+    .studio-tab-active {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-color: rgba(59, 130, 246, 0.28);
+    }
+
+    @media (max-width: 1180px) {
+      .studio-console,
+      .studio-resource-grid,
+      .studio-editor-grid,
+      .studio-split-grid,
+      .studio-form-two,
+      .studio-actions-stack {
+        grid-template-columns: 1fr;
+      }
+
+      .studio-side-column,
+      .studio-topbar {
+        position: static;
+      }
+    }
+  </style>
+
+  <script define:vars={{ initialState, studioBridgeUrl }}>
+    const storageKey = "atlas-ai-tools-studio:v1";
+    const exportKeys = ["site", "categories", "tools", "enrichments"];
+    const importKeys = ["site", "categories", "tools", "enrichments"];
+    const fileAccessSupported = typeof window.showSaveFilePicker === "function" && typeof indexedDB !== "undefined";
+    let state = loadState();
+    let selectedCategoryIndex = state.categories.length ? 0 : -1;
+    let selectedToolIndex = state.tools.length ? 0 : -1;
+    let exportKey = "site";
+    let importKey = "site";
+    let toolSearch = "";
+    let bridgeState = {
+      ok: false,
+      busy: false,
+      jobs: [],
+      message: "尚未连接本地任务桥。",
+      log: ""
+    };
+    let enrichmentState = {
+      provider: "",
+      cached: false,
+      message: "还没有为当前工具生成增强资料。"
+    };
+    let fileHandles = { site: null, categories: null, tools: null, enrichments: null };
+    let fileHandleStatus = {
+      site: fileAccessSupported ? "未绑定文件" : "当前浏览器不支持直接回写",
+      categories: fileAccessSupported ? "未绑定文件" : "当前浏览器不支持直接回写",
+      tools: fileAccessSupported ? "未绑定文件" : "当前浏览器不支持直接回写",
+      enrichments: fileAccessSupported ? "未绑定文件" : "当前浏览器不支持直接回写"
+    };
+
+    const statusNode = document.getElementById("studio-status");
+    const globalSearchNode = document.getElementById("studio-global-search");
+    const categoryListNode = document.getElementById("category-list");
+    const toolListNode = document.getElementById("tool-list");
+    const exportTabsNode = document.getElementById("export-tabs");
+    const exportOutputNode = document.getElementById("export-output");
+    const exportLabelNode = document.getElementById("export-label");
+    const fileHandleListNode = document.getElementById("file-handle-list");
+    const bridgeStatusNode = document.getElementById("bridge-status");
+    const bridgeLogNode = document.getElementById("bridge-log");
+    const bridgeJobButtonsNode = document.getElementById("bridge-job-buttons");
+    const readinessListNode = document.getElementById("readiness-list");
+    const importTabsNode = document.getElementById("import-tabs");
+    const importInputNode = document.getElementById("import-input");
+    const importLabelNode = document.getElementById("import-label");
+    const bulkCategoryNode = document.getElementById("bulk-category");
+    const bulkToolsInputNode = document.getElementById("bulk-tools-input");
+    const enrichmentStatusNode = document.getElementById("enrichment-status");
+    const enrichmentJsonNode = document.getElementById("enrichment-json");
+    const enrichmentFields = {
+      summary: document.getElementById("enrichment-summary"),
+      metaDescription: document.getElementById("enrichment-meta-description"),
+      prosText: document.getElementById("enrichment-pros"),
+      consText: document.getElementById("enrichment-cons"),
+      alternativesText: document.getElementById("enrichment-alternatives"),
+      editorialAnglesText: document.getElementById("enrichment-editorial-angles"),
+      faqText: document.getElementById("enrichment-faq"),
+      suggestedLinksText: document.getElementById("enrichment-links")
+    };
+
+    const siteFields = {
+      name: document.getElementById("site-name"),
+      domain: document.getElementById("site-domain"),
+      url: document.getElementById("site-url"),
+      contactEmail: document.getElementById("site-contact-email"),
+      legalEntity: document.getElementById("site-legal-entity"),
+      adsensePublisherId: document.getElementById("site-adsense-publisher-id"),
+      googleSiteVerification: document.getElementById("site-google-site-verification"),
+      description: document.getElementById("site-description")
+    };
+
+    const categoryFields = {
+      title: document.getElementById("category-editor-title"),
+      slug: document.getElementById("category-slug"),
+      name: document.getElementById("category-name"),
+      description: document.getElementById("category-description")
+    };
+
+    const toolFields = {
+      title: document.getElementById("tool-editor-title"),
+      slug: document.getElementById("tool-slug"),
+      name: document.getElementById("tool-name"),
+      category: document.getElementById("tool-category"),
+      officialUrl: document.getElementById("tool-official-url"),
+      pricingModel: document.getElementById("tool-pricing-model"),
+      subcategories: document.getElementById("tool-subcategories"),
+      coreFeatures: document.getElementById("tool-core-features"),
+      useCases: document.getElementById("tool-use-cases"),
+      targetUsers: document.getElementById("tool-target-users")
+    };
+
+    function slugify(value) {
+      return value
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+    }
+
+    function clone(value) {
+      return JSON.parse(JSON.stringify(value));
+    }
+
+    function openHandleDatabase() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open("atlas-ai-tools-studio-files", 1);
+        request.onupgradeneeded = () => {
+          const db = request.result;
+          if (!db.objectStoreNames.contains("handles")) {
+            db.createObjectStore("handles");
+          }
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    async function getStoredHandle(key) {
+      const db = await openHandleDatabase();
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction("handles", "readonly");
+        const request = transaction.objectStore("handles").get(key);
+        request.onsuccess = () => resolve(request.result ?? null);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    async function setStoredHandle(key, handle) {
+      const db = await openHandleDatabase();
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction("handles", "readwrite");
+        transaction.objectStore("handles").put(handle, key);
+        transaction.oncomplete = () => resolve();
+        transaction.onerror = () => reject(transaction.error);
+      });
+    }
+
+    async function clearStoredHandle(key) {
+      const db = await openHandleDatabase();
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction("handles", "readwrite");
+        transaction.objectStore("handles").delete(key);
+        transaction.oncomplete = () => resolve();
+        transaction.onerror = () => reject(transaction.error);
+      });
+    }
+
+    function loadState() {
+      const raw = localStorage.getItem(storageKey);
+      if (!raw) return clone(initialState);
+
+      try {
+        const parsed = JSON.parse(raw);
+        return {
+          site: { ...clone(initialState.site), ...(parsed.site || {}) },
+          categories: Array.isArray(parsed.categories) ? parsed.categories : clone(initialState.categories),
+          tools: Array.isArray(parsed.tools) ? parsed.tools : clone(initialState.tools),
+          enrichments:
+            parsed.enrichments && typeof parsed.enrichments === "object" && !Array.isArray(parsed.enrichments)
+              ? parsed.enrichments
+              : clone(initialState.enrichments || {})
+        };
+      } catch {
+        return clone(initialState);
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(storageKey, JSON.stringify(state));
+    }
+
+    function listToLines(items) {
+      return items.join("\n");
+    }
+
+    function linesToList(value) {
+      return value
+        .split("\n")
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+
+    function createEmptyCategory() {
+      return { slug: "", name: "", description: "" };
+    }
+
+    function createEmptyTool(category = state.categories[0]?.slug || "") {
+      return {
+        slug: "",
+        name: "",
+        category,
+        subcategories: [],
+        officialUrl: "",
+        pricingModel: "",
+        coreFeatures: [],
+        useCases: [],
+        targetUsers: []
+      };
+    }
+
+    function createEmptyEnrichment() {
+      return {
+        summary: "",
+        pros: [],
+        cons: [],
+        alternatives: [],
+        faq: [],
+        metaDescription: "",
+        editorialAngles: [],
+        suggestedInternalLinks: []
+      };
+    }
+
+    function enrichmentToDraft(enrichment) {
+      return {
+        summary: enrichment.summary || "",
+        metaDescription: enrichment.metaDescription || "",
+        prosText: listToLines(enrichment.pros || []),
+        consText: listToLines(enrichment.cons || []),
+        alternativesText: listToLines(enrichment.alternatives || []),
+        editorialAnglesText: listToLines(enrichment.editorialAngles || []),
+        faqText: (enrichment.faq || [])
+          .map((item) => `${item.question || ""} | ${item.answer || ""}`)
+          .join("\n"),
+        suggestedLinksText: (enrichment.suggestedInternalLinks || [])
+          .map((item) => `${item.label || ""} | ${item.href || ""}`)
+          .join("\n")
+      };
+    }
+
+    function draftToEnrichment(draft) {
+      return {
+        summary: draft.summary.trim(),
+        metaDescription: draft.metaDescription.trim(),
+        pros: linesToList(draft.prosText),
+        cons: linesToList(draft.consText),
+        alternatives: linesToList(draft.alternativesText),
+        editorialAngles: linesToList(draft.editorialAnglesText),
+        faq: linesToList(draft.faqText).map((line) => {
+          const [question = "", answer = ""] = line.split("|").map((item) => item.trim());
+          return { question, answer };
+        }),
+        suggestedInternalLinks: linesToList(draft.suggestedLinksText).map((line) => {
+          const [label = "", href = ""] = line.split("|").map((item) => item.trim());
+          return { label, href };
+        })
+      };
+    }
+
+    function parseImportJson(kind, raw) {
+      const parsed = JSON.parse(raw);
+
+      if (kind === "site") {
+        if (
+          !parsed ||
+          typeof parsed !== "object" ||
+          typeof parsed.name !== "string" ||
+          typeof parsed.domain !== "string" ||
+          typeof parsed.url !== "string" ||
+          typeof parsed.description !== "string"
+        ) {
+          throw new Error("站点配置 JSON 结构不正确。");
+        }
+
+        if (
+          typeof parsed.googleSiteVerification !== "undefined" &&
+          typeof parsed.googleSiteVerification !== "string"
+        ) {
+          throw new Error("站点配置里的 Search Console 验证码必须是字符串。");
+        }
+
+        if (typeof parsed.adsensePublisherId !== "undefined" && typeof parsed.adsensePublisherId !== "string") {
+          throw new Error("站点配置里的 AdSense 发布商 ID 必须是字符串。");
+        }
+
+        return parsed;
+      }
+
+      if (!Array.isArray(parsed)) {
+        throw new Error("导入内容必须是数组。");
+      }
+
+      if (kind === "categories") {
+        for (const item of parsed) {
+          if (
+            !item ||
+            typeof item !== "object" ||
+            typeof item.slug !== "string" ||
+            typeof item.name !== "string" ||
+            typeof item.description !== "string"
+          ) {
+            throw new Error("分类 JSON 结构不正确。");
+          }
+        }
+
+        return parsed;
+      }
+
+      if (kind === "enrichments") {
+        if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+          throw new Error("增强资料 JSON 必须是对象。");
+        }
+
+        return parsed;
+      }
+
+      for (const item of parsed) {
+        if (
+          !item ||
+          typeof item !== "object" ||
+          typeof item.slug !== "string" ||
+          typeof item.name !== "string" ||
+          typeof item.category !== "string" ||
+          !Array.isArray(item.subcategories) ||
+          typeof item.officialUrl !== "string" ||
+          typeof item.pricingModel !== "string" ||
+          !Array.isArray(item.coreFeatures) ||
+          !Array.isArray(item.useCases) ||
+          !Array.isArray(item.targetUsers)
+        ) {
+          throw new Error("工具 JSON 结构不正确。");
+        }
+      }
+
+      return parsed;
+    }
+
+    function parseBulkRows(raw, fallbackCategory) {
+      return raw
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((line) => {
+          const columns = line.includes("|")
+            ? line.split("|").map((item) => item.trim())
+            : line.split("\t").map((item) => item.trim());
+
+          const [
+            name = "",
+            slug = "",
+            category = "",
+            officialUrl = "",
+            pricingModel = "",
+            subcategories = "",
+            coreFeatures = "",
+            useCases = "",
+            targetUsers = ""
+          ] = columns;
+
+          return {
+            name,
+            slug,
+            category: category || fallbackCategory,
+            officialUrl,
+            pricingModel,
+            subcategories: subcategories.split(",").map((item) => item.trim()).filter(Boolean),
+            coreFeatures: coreFeatures.split(",").map((item) => item.trim()).filter(Boolean),
+            useCases: useCases.split(",").map((item) => item.trim()).filter(Boolean),
+            targetUsers: targetUsers.split(",").map((item) => item.trim()).filter(Boolean)
+          };
+        });
+    }
+
+    function buildReadinessChecks() {
+      const siteUrl = (state.site.url || "").toLowerCase();
+      const siteDomain = (state.site.domain || "").toLowerCase();
+      const contactEmail = (state.site.contactEmail || "").toLowerCase();
+      const adsensePublisherId = (state.site.adsensePublisherId || "").trim();
+      const googleSiteVerification = (state.site.googleSiteVerification || "").trim();
+
+      return [
+        {
+          key: "production-domain",
+          label: "生产域名",
+          ok: !siteUrl.includes("example.com") && !siteDomain.includes("example.com"),
+          detail:
+            !siteUrl.includes("example.com") && !siteDomain.includes("example.com")
+              ? "域名看起来已经替换成正式值。"
+              : "还在使用 example.com，正式部署前需要替换。"
+        },
+        {
+          key: "contact-email",
+          label: "联系邮箱",
+          ok: Boolean(contactEmail) && !contactEmail.includes("example.com"),
+          detail:
+            Boolean(contactEmail) && !contactEmail.includes("example.com")
+              ? "联系邮箱看起来可用于真实对外联系。"
+              : "联系邮箱仍是示例值，送审前需要替换。"
+        },
+        {
+          key: "adsense-publisher",
+          label: "AdSense 发布商 ID",
+          ok: Boolean(adsensePublisherId),
+          detail: adsensePublisherId ? "已填写 AdSense 发布商 ID。" : "还没有填写 AdSense 发布商 ID。"
+        },
+        {
+          key: "gsc-verification",
+          label: "GSC 验证码",
+          ok: Boolean(googleSiteVerification),
+          detail: googleSiteVerification ? "已填写 Search Console 验证码。" : "还没有填写 Search Console 验证码。"
+        },
+        {
+          key: "categories-present",
+          label: "分类数量",
+          ok: state.categories.length > 0,
+          detail: state.categories.length > 0 ? `当前共有 ${state.categories.length} 个分类。` : "还没有分类。"
+        },
+        {
+          key: "tools-present",
+          label: "工具数量",
+          ok: state.tools.length > 0,
+          detail: state.tools.length > 0 ? `当前共有 ${state.tools.length} 个工具。` : "还没有工具。"
+        }
+      ];
+    }
+
+    async function ensureFilePermission(handle) {
+      if (!handle) return false;
+      const current = await handle.queryPermission({ mode: "readwrite" });
+      if (current === "granted") return true;
+      const requested = await handle.requestPermission({ mode: "readwrite" });
+      return requested === "granted";
+    }
+
+    function serializeExport() {
+      return {
+        site: JSON.stringify(state.site, null, 2),
+        categories: JSON.stringify(state.categories, null, 2),
+        tools: JSON.stringify(state.tools, null, 2),
+        enrichments: JSON.stringify(state.enrichments || {}, null, 2)
+      };
+    }
+
+    function getIssues() {
+      const issues = [];
+      const categorySlugs = new Set();
+      const toolSlugs = new Set();
+
+      if (!state.site.name.trim()) issues.push("站点名称不能为空");
+      if (!state.site.url.trim()) issues.push("站点完整 URL 不能为空");
+
+      for (const category of state.categories) {
+        if (!category.slug.trim()) issues.push("存在 slug 为空的分类");
+        if (categorySlugs.has(category.slug)) issues.push(`分类 slug 重复：${category.slug}`);
+        categorySlugs.add(category.slug);
+      }
+
+      for (const tool of state.tools) {
+        if (!tool.slug.trim()) issues.push("存在 slug 为空的工具");
+        if (toolSlugs.has(tool.slug)) issues.push(`工具 slug 重复：${tool.slug}`);
+        if (!categorySlugs.has(tool.category)) issues.push(`工具 ${tool.name || tool.slug || "未命名工具"} 关联了不存在的分类：${tool.category}`);
+        toolSlugs.add(tool.slug);
+      }
+
+      return issues;
+    }
+
+    function setCategoryIndex(index) {
+      selectedCategoryIndex = index;
+      render();
+    }
+
+    function setToolIndex(index) {
+      selectedToolIndex = index;
+      render();
+    }
+
+    function scrollToPanel(panelId) {
+      const target = document.getElementById(panelId);
+      if (target) {
+        const top = window.scrollY + target.getBoundingClientRect().top - 104;
+        window.scrollTo({ top, behavior: "smooth" });
+      }
+    }
+
+    function findToolIndexByQuery(query) {
+      const q = query.trim().toLowerCase();
+      if (!q) return -1;
+
+      const exactIndex = state.tools.findIndex(
+        (tool) => tool.name.toLowerCase() === q || tool.slug.toLowerCase() === q
+      );
+      if (exactIndex >= 0) return exactIndex;
+
+      return state.tools.findIndex(
+        (tool) => tool.name.toLowerCase().includes(q) || tool.slug.toLowerCase().includes(q)
+      );
+    }
+
+    function downloadFile(filename, content) {
+      const blob = new Blob([content], { type: "application/json;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = filename;
+      anchor.click();
+      URL.revokeObjectURL(url);
+    }
+
+    async function copyCurrentExport() {
+      const payload = serializeExport();
+      await navigator.clipboard.writeText(payload[exportKey]);
+    }
+
+    function renderStatus() {
+      const issues = getIssues();
+      statusNode.innerHTML = `
+        <span class="studio-chip">分类 ${state.categories.length}</span>
+        <span class="studio-chip">工具 ${state.tools.length}</span>
+        <span class="studio-chip">导出模式：${exportKey}</span>
+        <span class="studio-chip ${issues.length ? "studio-chip-danger" : ""}">
+          ${issues.length ? `存在 ${issues.length} 个待修问题` : "当前数据结构通过基础检查"}
+        </span>
+      `;
+    }
+
+    function renderCategoryList() {
+      if (!state.categories.length) {
+        categoryListNode.innerHTML = '<p class="section-lead">还没有分类，先新增一个。</p>';
+        return;
+      }
+
+      categoryListNode.innerHTML = state.categories
+        .map((category, index) => {
+          const toolCount = state.tools.filter((tool) => tool.category === category.slug).length;
+          return `
+          <button type="button" class="studio-list-item ${index === selectedCategoryIndex ? "studio-list-item-active" : ""}" data-category-index="${index}">
+            <strong>${category.name || "未命名分类"}</strong>
+            <div class="studio-list-item-meta">
+              <span class="studio-pill">${category.slug || "slug 待填"}</span>
+              <span class="studio-pill">${toolCount} tools</span>
+            </div>
+            <small>${category.description || "暂无描述"}</small>
+          </button>
+        `;
+        })
+        .join("");
+    }
+
+    function renderToolList() {
+      const filtered = state.tools
+        .map((tool, index) => ({ tool, index }))
+        .filter(({ tool }) => {
+          if (!toolSearch.trim()) return true;
+          const q = toolSearch.trim().toLowerCase();
+          return tool.name.toLowerCase().includes(q) || tool.slug.toLowerCase().includes(q);
+        });
+
+      if (!filtered.length) {
+        toolListNode.innerHTML = '<p class="section-lead">没有匹配的工具。</p>';
+        return;
+      }
+
+      toolListNode.innerHTML = filtered
+        .map(({ tool, index }) => `
+          <button type="button" class="studio-list-item ${index === selectedToolIndex ? "studio-list-item-active" : ""}" data-tool-index="${index}">
+            <strong>${tool.name || "未命名工具"}</strong>
+            <div class="studio-list-item-meta">
+              <span class="studio-pill">${tool.slug || "slug 待填"}</span>
+              <span class="studio-pill">${tool.category || "未关联分类"}</span>
+              <span class="studio-pill">${tool.pricingModel || "pricing n/a"}</span>
+            </div>
+            <small>${tool.useCases?.slice(0, 2).join(" · ") || "定价模型待填"}</small>
+          </button>
+        `)
+        .join("");
+    }
+
+    function renderCategoryEditor() {
+      const category = state.categories[selectedCategoryIndex];
+      const disabled = !category;
+
+      categoryFields.title.textContent = category ? `正在编辑：${category.name || category.slug || "未命名分类"}` : "选择一个分类";
+      categoryFields.slug.value = category?.slug || "";
+      categoryFields.name.value = category?.name || "";
+      categoryFields.description.value = category?.description || "";
+
+      [categoryFields.slug, categoryFields.name, categoryFields.description].forEach((field) => {
+        field.disabled = disabled;
+      });
+    }
+
+    function renderToolEditor() {
+      const tool = state.tools[selectedToolIndex];
+      const disabled = !tool;
+
+      toolFields.title.textContent = tool ? `正在编辑：${tool.name || tool.slug || "未命名工具"}` : "选择一个工具";
+      toolFields.category.innerHTML = state.categories
+        .map((category) => `<option value="${category.slug}">${category.name || category.slug}</option>`)
+        .join("");
+
+      toolFields.slug.value = tool?.slug || "";
+      toolFields.name.value = tool?.name || "";
+      toolFields.category.value = tool?.category || "";
+      toolFields.officialUrl.value = tool?.officialUrl || "";
+      toolFields.pricingModel.value = tool?.pricingModel || "";
+      toolFields.subcategories.value = listToLines(tool?.subcategories || []);
+      toolFields.coreFeatures.value = listToLines(tool?.coreFeatures || []);
+      toolFields.useCases.value = listToLines(tool?.useCases || []);
+      toolFields.targetUsers.value = listToLines(tool?.targetUsers || []);
+
+      [
+        toolFields.slug,
+        toolFields.name,
+        toolFields.category,
+        toolFields.officialUrl,
+        toolFields.pricingModel,
+        toolFields.subcategories,
+        toolFields.coreFeatures,
+        toolFields.useCases,
+        toolFields.targetUsers
+      ].forEach((field) => {
+        field.disabled = disabled;
+      });
+    }
+
+    function renderEnrichmentPanel() {
+      const tool = state.tools[selectedToolIndex];
+      const enrichment = tool ? state.enrichments?.[tool.slug] : undefined;
+      const draft = enrichmentToDraft(enrichment || createEmptyEnrichment());
+      const hasEnrichment = Boolean(tool && enrichment);
+
+      enrichmentStatusNode.innerHTML = `
+        <span class="studio-chip ${tool ? "" : "studio-chip-danger"}">
+          ${tool ? `当前工具：${tool.name || tool.slug || "未命名工具"}` : "当前没有选中工具"}
+        </span>
+        <span class="studio-chip ${hasEnrichment ? "" : "studio-chip-danger"}">
+          ${hasEnrichment ? "已有增强资料" : "尚未生成增强资料"}
+        </span>
+        <span class="studio-chip">${enrichmentState.provider ? `来源：${enrichmentState.provider}` : "来源：未生成"}</span>
+        <span class="studio-chip">${enrichmentState.message}</span>
+      `;
+
+      Object.entries(enrichmentFields).forEach(([key, node]) => {
+        node.disabled = !tool;
+        node.value = draft[key] || "";
+      });
+
+      enrichmentJsonNode.disabled = !tool;
+      enrichmentJsonNode.value = tool ? JSON.stringify(enrichment || createEmptyEnrichment(), null, 2) : "";
+    }
+
+    function renderExport() {
+      const payload = serializeExport();
+      exportTabsNode.innerHTML = exportKeys
+        .map((key) => `
+          <button type="button" class="studio-button studio-button-small studio-tab ${key === exportKey ? "studio-tab-active" : "studio-button-ghost"}" data-export-key="${key}">
+            ${key}.json
+          </button>
+        `)
+        .join("");
+
+      exportLabelNode.textContent = `当前导出：${exportKey}.json`;
+      exportOutputNode.value = payload[exportKey];
+    }
+
+    function renderImportPanel() {
+      importTabsNode.innerHTML = importKeys
+        .map((key) => `
+          <button type="button" class="studio-button studio-button-small studio-tab ${key === importKey ? "studio-tab-active" : "studio-button-ghost"}" data-import-key="${key}">
+            ${key}.json
+          </button>
+        `)
+        .join("");
+
+      importLabelNode.textContent = `导入目标：${importKey}.json`;
+    }
+
+    function renderReadinessPanel() {
+      const checks = buildReadinessChecks();
+      readinessListNode.innerHTML = checks
+        .map(
+          (check) => `
+            <div class="studio-check ${check.ok ? "studio-check-ok" : "studio-check-warn"}">
+              <strong>${check.label}</strong>
+              <small>${check.detail}</small>
+            </div>
+          `
+        )
+        .join("");
+    }
+
+    function renderFileHandlePanel() {
+      fileHandleListNode.innerHTML = exportKeys
+        .map((key) => {
+          const filename = `${key}.json`;
+          const boundName = fileHandles[key]?.name || filename;
+          const actions = fileAccessSupported
+            ? `
+              <div class="studio-actions studio-actions-inline">
+                <button type="button" class="studio-button studio-button-small" data-file-action="bind" data-file-key="${key}">
+                  ${fileHandles[key] ? "重新绑定" : "绑定文件"}
+                </button>
+                <button type="button" class="studio-button studio-button-small studio-button-ghost" data-file-action="save" data-file-key="${key}" ${fileHandles[key] ? "" : "disabled"}>
+                  保存当前内容
+                </button>
+                <button type="button" class="studio-button studio-button-small studio-button-ghost" data-file-action="clear" data-file-key="${key}" ${fileHandles[key] ? "" : "disabled"}>
+                  解除绑定
+                </button>
+              </div>
+            `
+            : `<small>浏览器不支持直写本地文件，请继续使用导出下载。</small>`;
+
+          return `
+            <div class="studio-file-card">
+              <div>
+                <strong>${filename}</strong>
+                <small>${boundName}</small>
+              </div>
+              <small>${fileHandleStatus[key]}</small>
+              ${actions}
+            </div>
+          `;
+        })
+        .join("");
+    }
+
+    function renderBridgePanel() {
+      bridgeStatusNode.innerHTML = `
+        <span class="studio-chip ${bridgeState.ok ? "" : "studio-chip-danger"}">
+          ${bridgeState.ok ? "本地任务桥已连接" : "本地任务桥未连接"}
+        </span>
+        <span class="studio-chip ${bridgeState.busy ? "studio-chip-danger" : ""}">
+          ${bridgeState.busy ? "当前有任务在运行" : "当前空闲"}
+        </span>
+        <span class="studio-chip">${bridgeState.message}</span>
+      `;
+
+      bridgeJobButtonsNode.innerHTML = (bridgeState.jobs || [])
+        .map(
+          (job) => `
+            <button
+              type="button"
+              class="studio-button studio-button-small"
+              data-bridge-job="${job.id}"
+              ${bridgeState.ok && !bridgeState.busy ? "" : "disabled"}
+            >
+              ${job.label}
+            </button>
+          `
+        )
+        .join("");
+
+      bridgeLogNode.value = bridgeState.log;
+    }
+
+    function renderBulkCategoryOptions() {
+      const currentValue = bulkCategoryNode.value;
+      bulkCategoryNode.innerHTML = state.categories
+        .map((category) => `<option value="${category.slug}">${category.name || category.slug}</option>`)
+        .join("");
+
+      bulkCategoryNode.value = currentValue || state.categories[0]?.slug || "";
+    }
+
+    function renderSiteForm() {
+      siteFields.name.value = state.site.name || "";
+      siteFields.domain.value = state.site.domain || "";
+      siteFields.url.value = state.site.url || "";
+      siteFields.contactEmail.value = state.site.contactEmail || "";
+      siteFields.legalEntity.value = state.site.legalEntity || "";
+      siteFields.adsensePublisherId.value = state.site.adsensePublisherId || "";
+      siteFields.googleSiteVerification.value = state.site.googleSiteVerification || "";
+      siteFields.description.value = state.site.description || "";
+    }
+
+    function render() {
+      renderStatus();
+      renderReadinessPanel();
+      renderSiteForm();
+      renderCategoryList();
+      renderToolList();
+      renderCategoryEditor();
+      renderToolEditor();
+      renderEnrichmentPanel();
+      renderBulkCategoryOptions();
+      renderExport();
+      renderImportPanel();
+      renderFileHandlePanel();
+      renderBridgePanel();
+    }
+
+    async function refreshBridgeStatus() {
+      try {
+        const response = await fetch(`${studioBridgeUrl}/health`);
+        if (!response.ok) {
+          throw new Error(`Bridge responded with ${response.status}`);
+        }
+
+        const payload = await response.json();
+        bridgeState = {
+          ...bridgeState,
+          ok: true,
+          busy: Boolean(payload.busy),
+          jobs: payload.jobs || [],
+          message: payload.busy ? "桥接服务在线，任务执行中。" : "桥接服务在线，可触发本地任务。"
+        };
+      } catch {
+        bridgeState = {
+          ...bridgeState,
+          ok: false,
+          busy: false,
+          jobs: [],
+          message: "未检测到桥接服务，请先运行 npm run studio:bridge。"
+        };
+      }
+
+      renderBridgePanel();
+    }
+
+    async function runBridgeJob(jobId) {
+      bridgeState = {
+        ...bridgeState,
+        busy: true,
+        message: `正在执行任务：${jobId}`,
+        log: ""
+      };
+      renderBridgePanel();
+
+      try {
+        const response = await fetch(`${studioBridgeUrl}/run`, {
+          method: "POST",
+          headers: {
+            "content-type": "application/json"
+          },
+          body: JSON.stringify({ job: jobId })
+        });
+
+        const payload = await response.json();
+        if (!response.ok) {
+          throw new Error(payload.error || `Bridge responded with ${response.status}`);
+        }
+
+        bridgeState = {
+          ...bridgeState,
+          ok: true,
+          busy: false,
+          message: payload.success ? `${payload.label} 已完成。` : `${payload.label} 执行失败。`,
+          log: [payload.stdout, payload.stderr].filter(Boolean).join("\n\n")
+        };
+      } catch (error) {
+        bridgeState = {
+          ...bridgeState,
+          ok: false,
+          busy: false,
+          message: "任务执行失败或桥接服务不可用。",
+          log: error instanceof Error ? error.message : String(error)
+        };
+      }
+
+      await refreshBridgeStatus();
+      bridgeLogNode.value = bridgeState.log;
+    }
+
+    async function runStudioEnrichment(force = false) {
+      const tool = state.tools[selectedToolIndex];
+      if (!tool) {
+        alert("先选择一个工具。");
+        return;
+      }
+
+      enrichmentState = {
+        provider: "",
+        cached: false,
+        message: "正在请求 AI 补全..."
+      };
+      renderEnrichmentPanel();
+
+      try {
+        const response = await fetch(`${studioBridgeUrl}/enrich-tool`, {
+          method: "POST",
+          headers: {
+            "content-type": "application/json"
+          },
+          body: JSON.stringify({
+            tool,
+            categories: state.categories,
+            force
+          })
+        });
+
+        const payload = await response.json();
+        if (!response.ok) {
+          throw new Error(payload.error || `Bridge responded with ${response.status}`);
+        }
+
+        state.enrichments = state.enrichments || {};
+        state.enrichments[tool.slug] = payload.enrichment;
+        enrichmentState = {
+          provider: payload.provider,
+          cached: Boolean(payload.cached),
+          message: payload.cached ? "命中本地缓存并已载入。" : "已生成新的增强资料。"
+        };
+        saveState();
+        render();
+      } catch (error) {
+        enrichmentState = {
+          provider: "",
+          cached: false,
+          message: error instanceof Error ? error.message : String(error)
+        };
+        renderEnrichmentPanel();
+      }
+    }
+
+    document.getElementById("reset-studio").addEventListener("click", () => {
+      state = clone(initialState);
+      selectedCategoryIndex = state.categories.length ? 0 : -1;
+      selectedToolIndex = state.tools.length ? 0 : -1;
+      saveState();
+      render();
+    });
+
+    document.getElementById("clear-draft").addEventListener("click", () => {
+      localStorage.removeItem(storageKey);
+      state = clone(initialState);
+      selectedCategoryIndex = state.categories.length ? 0 : -1;
+      selectedToolIndex = state.tools.length ? 0 : -1;
+      render();
+    });
+
+    document.getElementById("download-all").addEventListener("click", () => {
+      const payload = serializeExport();
+      downloadFile("site.json", payload.site);
+      downloadFile("categories.json", payload.categories);
+      downloadFile("tools.json", payload.tools);
+    });
+
+    document.getElementById("copy-export").addEventListener("click", async () => {
+      await copyCurrentExport();
+    });
+
+    document.getElementById("download-export").addEventListener("click", () => {
+      const payload = serializeExport();
+      downloadFile(`${exportKey}.json`, payload[exportKey]);
+    });
+
+    document.getElementById("bulk-add-tools").addEventListener("click", () => {
+      try {
+        const rows = parseBulkRows(bulkToolsInputNode.value, bulkCategoryNode.value);
+        if (!rows.length) {
+          alert("先粘贴至少一行工具数据。");
+          return;
+        }
+
+        state.tools.push(...rows);
+        selectedToolIndex = state.tools.length - 1;
+        bulkToolsInputNode.value = "";
+        saveState();
+        render();
+      } catch (error) {
+        alert(error instanceof Error ? error.message : String(error));
+      }
+    });
+
+    document.getElementById("studio-quick-create-tool").addEventListener("click", () => {
+      const raw = globalSearchNode.value.trim();
+      if (!raw) {
+        alert("先输入一个工具名，再快速创建。");
+        return;
+      }
+
+      const existingIndex = findToolIndexByQuery(raw);
+      if (existingIndex >= 0) {
+        selectedToolIndex = existingIndex;
+        toolSearch = raw;
+        saveState();
+        render();
+        scrollToPanel("studio-panel-editors");
+        return;
+      }
+
+      let slug = slugify(raw);
+      let suffix = 2;
+      while (state.tools.some((tool) => tool.slug === slug)) {
+        slug = `${slugify(raw)}-${suffix}`;
+        suffix += 1;
+      }
+
+      const draft = createEmptyTool(state.categories[0]?.slug || "");
+      draft.name = raw;
+      draft.slug = slug;
+      state.tools.push(draft);
+      selectedToolIndex = state.tools.length - 1;
+      globalSearchNode.value = "";
+      saveState();
+      render();
+      scrollToPanel("studio-panel-editors");
+    });
+
+    document.getElementById("apply-import").addEventListener("click", () => {
+      if (!importInputNode.value.trim()) {
+        alert("先把 JSON 粘贴到导入框里。");
+        return;
+      }
+
+      try {
+        const parsed = parseImportJson(importKey, importInputNode.value);
+
+        if (importKey === "site") {
+          state.site = parsed;
+        } else if (importKey === "categories") {
+          state.categories = parsed;
+          selectedCategoryIndex = state.categories.length ? 0 : -1;
+        } else if (importKey === "enrichments") {
+          state.enrichments = parsed;
+        } else {
+          state.tools = parsed;
+          selectedToolIndex = state.tools.length ? 0 : -1;
+        }
+
+        saveState();
+        render();
+      } catch (error) {
+        alert(error instanceof Error ? error.message : String(error));
+      }
+    });
+
+    document.getElementById("clear-import").addEventListener("click", () => {
+      importInputNode.value = "";
+    });
+
+    fileHandleListNode.addEventListener("click", async (event) => {
+      const button = event.target.closest("[data-file-action]");
+      if (!button) return;
+
+      const action = button.dataset.fileAction;
+      const key = button.dataset.fileKey;
+
+      if (!fileAccessSupported) {
+        alert("当前浏览器不支持直接回写本地文件，请继续使用导出下载。");
+        return;
+      }
+
+      if (action === "bind") {
+        try {
+          const handle = await window.showSaveFilePicker({
+            suggestedName: `${key}.json`,
+            types: [
+              {
+                description: "JSON 文件",
+                accept: {
+                  "application/json": [".json"]
+                }
+              }
+            ]
+          });
+
+          fileHandles[key] = handle;
+          fileHandleStatus[key] = `已绑定：${handle.name}`;
+          await setStoredHandle(key, handle);
+          renderFileHandlePanel();
+        } catch (error) {
+          if (error?.name !== "AbortError") {
+            alert(error instanceof Error ? error.message : String(error));
+          }
+        }
+        return;
+      }
+
+      if (action === "save") {
+        const handle = fileHandles[key];
+        if (!handle) {
+          alert("这个文件还没有绑定。");
+          return;
+        }
+
+        try {
+          const allowed = await ensureFilePermission(handle);
+          if (!allowed) {
+            alert("没有获得该文件的写入权限。");
+            return;
+          }
+
+          const writable = await handle.createWritable();
+          await writable.write(serializeExport()[key]);
+          await writable.close();
+          fileHandleStatus[key] = `已写入：${handle.name}`;
+          renderFileHandlePanel();
+        } catch (error) {
+          alert(error instanceof Error ? error.message : String(error));
+        }
+        return;
+      }
+
+      if (action === "clear") {
+        fileHandles[key] = null;
+        fileHandleStatus[key] = "未绑定文件";
+        await clearStoredHandle(key);
+        renderFileHandlePanel();
+      }
+    });
+
+    document.getElementById("save-bound-files").addEventListener("click", async () => {
+      if (!fileAccessSupported) {
+        alert("当前浏览器不支持直接回写本地文件。");
+        return;
+      }
+
+      const boundKeys = exportKeys.filter((key) => fileHandles[key]);
+      if (!boundKeys.length) {
+        alert("先至少绑定一个 JSON 文件。");
+        return;
+      }
+
+      for (const key of boundKeys) {
+        const handle = fileHandles[key];
+        const allowed = await ensureFilePermission(handle);
+        if (!allowed) {
+          fileHandleStatus[key] = `未获权限：${handle.name}`;
+          continue;
+        }
+
+        const writable = await handle.createWritable();
+        await writable.write(serializeExport()[key]);
+        await writable.close();
+        fileHandleStatus[key] = `已写入：${handle.name}`;
+      }
+
+      renderFileHandlePanel();
+    });
+
+    document.getElementById("enrich-current-tool").addEventListener("click", async () => {
+      await runStudioEnrichment(false);
+    });
+
+    document.getElementById("force-enrich-current-tool").addEventListener("click", async () => {
+      await runStudioEnrichment(true);
+    });
+
+    document.getElementById("apply-enrichment-json").addEventListener("click", () => {
+      const tool = state.tools[selectedToolIndex];
+      if (!tool) {
+        alert("先选择一个工具。");
+        return;
+      }
+
+      try {
+        const parsed = JSON.parse(enrichmentJsonNode.value || "{}");
+        state.enrichments = state.enrichments || {};
+        state.enrichments[tool.slug] = parsed;
+        enrichmentState = {
+          provider: "manual",
+          cached: false,
+          message: "已应用手动编辑后的增强 JSON。"
+        };
+        saveState();
+        render();
+      } catch (error) {
+        alert(error instanceof Error ? error.message : String(error));
+      }
+    });
+
+    document.getElementById("apply-enrichment-form").addEventListener("click", () => {
+      const tool = state.tools[selectedToolIndex];
+      if (!tool) {
+        alert("先选择一个工具。");
+        return;
+      }
+
+      const draft = {
+        summary: enrichmentFields.summary.value,
+        metaDescription: enrichmentFields.metaDescription.value,
+        prosText: enrichmentFields.prosText.value,
+        consText: enrichmentFields.consText.value,
+        alternativesText: enrichmentFields.alternativesText.value,
+        editorialAnglesText: enrichmentFields.editorialAnglesText.value,
+        faqText: enrichmentFields.faqText.value,
+        suggestedLinksText: enrichmentFields.suggestedLinksText.value
+      };
+
+      state.enrichments = state.enrichments || {};
+      state.enrichments[tool.slug] = draftToEnrichment(draft);
+      enrichmentState = {
+        provider: "manual-form",
+        cached: false,
+        message: "已应用结构化增强资料。"
+      };
+      saveState();
+      render();
+    });
+
+    document.getElementById("refresh-bridge").addEventListener("click", async () => {
+      await refreshBridgeStatus();
+    });
+
+    document.getElementById("add-category").addEventListener("click", () => {
+      state.categories.push(createEmptyCategory());
+      selectedCategoryIndex = state.categories.length - 1;
+      saveState();
+      render();
+    });
+
+    document.getElementById("delete-category").addEventListener("click", () => {
+      const category = state.categories[selectedCategoryIndex];
+      if (!category) return;
+
+      const boundTools = state.tools.filter((tool) => tool.category === category.slug);
+      if (boundTools.length) {
+        alert(`当前分类下还有 ${boundTools.length} 个工具，先调整工具分类再删除。`);
+        return;
+      }
+
+      state.categories.splice(selectedCategoryIndex, 1);
+      selectedCategoryIndex = state.categories.length ? Math.max(0, selectedCategoryIndex - 1) : -1;
+      saveState();
+      render();
+    });
+
+    document.getElementById("add-tool").addEventListener("click", () => {
+      state.tools.push(createEmptyTool(state.categories[0]?.slug || ""));
+      selectedToolIndex = state.tools.length - 1;
+      saveState();
+      render();
+    });
+
+    document.getElementById("delete-tool").addEventListener("click", () => {
+      if (selectedToolIndex < 0) return;
+      const tool = state.tools[selectedToolIndex];
+      if (tool && state.enrichments?.[tool.slug]) {
+        delete state.enrichments[tool.slug];
+      }
+      state.tools.splice(selectedToolIndex, 1);
+      selectedToolIndex = state.tools.length ? Math.max(0, selectedToolIndex - 1) : -1;
+      saveState();
+      render();
+    });
+
+    categoryListNode.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-category-index]");
+      if (!button) return;
+      setCategoryIndex(Number(button.dataset.categoryIndex));
+    });
+
+    toolListNode.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-tool-index]");
+      if (!button) return;
+      setToolIndex(Number(button.dataset.toolIndex));
+    });
+
+    exportTabsNode.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-export-key]");
+      if (!button) return;
+      exportKey = button.dataset.exportKey;
+      renderExport();
+    });
+
+    importTabsNode.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-import-key]");
+      if (!button) return;
+      importKey = button.dataset.importKey;
+      renderImportPanel();
+    });
+
+    bridgeJobButtonsNode.addEventListener("click", async (event) => {
+      const button = event.target.closest("[data-bridge-job]");
+      if (!button) return;
+      await runBridgeJob(button.dataset.bridgeJob);
+    });
+
+    document.getElementById("tool-search").addEventListener("input", (event) => {
+      toolSearch = event.currentTarget.value;
+      if (globalSearchNode.value !== toolSearch) {
+        globalSearchNode.value = toolSearch;
+      }
+      renderToolList();
+    });
+
+    globalSearchNode.addEventListener("input", (event) => {
+      toolSearch = event.currentTarget.value;
+      const localToolSearch = document.getElementById("tool-search");
+      if (localToolSearch.value !== toolSearch) {
+        localToolSearch.value = toolSearch;
+      }
+      renderToolList();
+    });
+
+    globalSearchNode.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter") return;
+      event.preventDefault();
+      document.getElementById("studio-quick-create-tool").click();
+    });
+
+    document.querySelectorAll("[data-scroll-target]").forEach((button) => {
+      button.addEventListener("click", () => {
+        scrollToPanel(button.dataset.scrollTarget);
+      });
+    });
+
+    Object.entries(siteFields).forEach(([key, input]) => {
+      input.addEventListener("input", (event) => {
+        state.site[key] = event.currentTarget.value;
+        saveState();
+        renderStatus();
+        renderExport();
+      });
+    });
+
+    Object.entries({
+      slug: categoryFields.slug,
+      name: categoryFields.name,
+      description: categoryFields.description
+    }).forEach(([key, input]) => {
+      input.addEventListener("input", (event) => {
+        const category = state.categories[selectedCategoryIndex];
+        if (!category) return;
+        const nextValue = event.currentTarget.value;
+
+        if (key === "slug") {
+          const previousSlug = category.slug;
+          category.slug = nextValue;
+          state.tools.forEach((tool) => {
+            if (tool.category === previousSlug) {
+              tool.category = nextValue;
+            }
+          });
+        } else {
+          category[key] = nextValue;
+        }
+
+        saveState();
+        render();
+      });
+    });
+
+    const toolFieldMap = {
+      slug: { node: toolFields.slug, parse: (value) => value },
+      name: { node: toolFields.name, parse: (value) => value },
+      category: { node: toolFields.category, parse: (value) => value },
+      officialUrl: { node: toolFields.officialUrl, parse: (value) => value },
+      pricingModel: { node: toolFields.pricingModel, parse: (value) => value },
+      subcategories: { node: toolFields.subcategories, parse: linesToList },
+      coreFeatures: { node: toolFields.coreFeatures, parse: linesToList },
+      useCases: { node: toolFields.useCases, parse: linesToList },
+      targetUsers: { node: toolFields.targetUsers, parse: linesToList }
+    };
+
+    Object.entries(toolFieldMap).forEach(([key, config]) => {
+      config.node.addEventListener("input", (event) => {
+        const tool = state.tools[selectedToolIndex];
+        if (!tool) return;
+        const nextValue = config.parse(event.currentTarget.value);
+
+        if (key === "slug") {
+          const previousSlug = tool.slug;
+          tool.slug = nextValue;
+
+          if (previousSlug && previousSlug !== nextValue && state.enrichments?.[previousSlug]) {
+            state.enrichments[nextValue] = state.enrichments[previousSlug];
+            delete state.enrichments[previousSlug];
+          }
+        } else {
+          tool[key] = nextValue;
+        }
+
+        saveState();
+        render();
+      });
+    });
+
+    async function hydrateStoredHandles() {
+      if (!fileAccessSupported) {
+        render();
+        return;
+      }
+
+      for (const key of exportKeys) {
+        try {
+          const handle = await getStoredHandle(key);
+          if (handle) {
+            fileHandles[key] = handle;
+            fileHandleStatus[key] = `已绑定：${handle.name}`;
+          }
+        } catch {
+          fileHandleStatus[key] = "读取绑定失败，可重新绑定。";
+        }
+      }
+
+      render();
+    }
+
+    void hydrateStoredHandles();
+  </script>
+</BaseLayout>

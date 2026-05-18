@@ -25,7 +25,7 @@ async function parseOpenAIResponsesPayload(response: Response): Promise<unknown>
   }
 
   const output = Array.isArray(payload.output) ? payload.output : [];
-  const textParts = output.flatMap((item) => {
+  const textParts = output.flatMap((item: unknown) => {
     if (!item || typeof item !== "object") {
       return [];
     }
