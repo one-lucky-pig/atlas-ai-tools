@@ -83,6 +83,8 @@ export interface SiteConfig {
   description: string;
   contactEmail?: string;
   legalEntity?: string;
+  googleSiteVerification?: string;
+  adsensePublisherId?: string;
 }
 
 export interface GenerationTask {

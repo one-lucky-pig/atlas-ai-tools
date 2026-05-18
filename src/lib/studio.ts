@@ -127,6 +127,18 @@ export function parseStudioImportJson(kind: StudioImportKey, raw: string) {
     ) {
       throw new Error("Invalid site JSON.");
     }
+
+    if (
+      typeof site.googleSiteVerification !== "undefined" &&
+      typeof site.googleSiteVerification !== "string"
+    ) {
+      throw new Error("Invalid site JSON.");
+    }
+
+    if (typeof site.adsensePublisherId !== "undefined" && typeof site.adsensePublisherId !== "string") {
+      throw new Error("Invalid site JSON.");
+    }
+
     return site as SiteConfig;
   }
 
@@ -259,6 +271,22 @@ export function buildStudioReadinessChecks(state: StudioState): StudioReadinessC
       detail: Boolean(contactEmail) && !contactEmail.includes("example.com")
         ? "联系邮箱已配置为可用地址。"
         : "联系邮箱仍是示例地址，送审前需要替换。"
+    },
+    {
+      key: "adsense-publisher",
+      label: "AdSense 发布商 ID",
+      ok: Boolean((state.site.adsensePublisherId ?? "").trim()),
+      detail: Boolean((state.site.adsensePublisherId ?? "").trim())
+        ? "已配置 AdSense 发布商 ID。"
+        : "还没有填写 AdSense 发布商 ID。"
+    },
+    {
+      key: "gsc-verification",
+      label: "GSC 验证码",
+      ok: Boolean((state.site.googleSiteVerification ?? "").trim()),
+      detail: Boolean((state.site.googleSiteVerification ?? "").trim())
+        ? "已配置 Search Console 验证码。"
+        : "还没有填写 Search Console 验证码。"
     },
     {
       key: "categories-present",

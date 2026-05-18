@@ -81,6 +81,14 @@ const studioBridgeUrl = "http://127.0.0.1:4323";
                 <span>法务实体</span>
                 <input id="site-legal-entity" type="text" />
               </label>
+              <label class="studio-field">
+                <span>AdSense 发布商 ID</span>
+                <input id="site-adsense-publisher-id" type="text" placeholder="ca-pub-xxxxxxxxxxxxxxxx" />
+              </label>
+              <label class="studio-field studio-field-full">
+                <span>Google Search Console 验证码</span>
+                <input id="site-google-site-verification" type="text" placeholder="填 content 的值，不要整行 meta 标签" />
+              </label>
               <label class="studio-field studio-field-full">
                 <span>站点描述</span>
                 <textarea id="site-description" rows="3"></textarea>
@@ -918,6 +926,8 @@ const studioBridgeUrl = "http://127.0.0.1:4323";
       url: document.getElementById("site-url"),
       contactEmail: document.getElementById("site-contact-email"),
       legalEntity: document.getElementById("site-legal-entity"),
+      adsensePublisherId: document.getElementById("site-adsense-publisher-id"),
+      googleSiteVerification: document.getElementById("site-google-site-verification"),
       description: document.getElementById("site-description")
     };
 
@@ -1114,6 +1124,17 @@ const studioBridgeUrl = "http://127.0.0.1:4323";
           throw new Error("站点配置 JSON 结构不正确。");
         }
 
+        if (
+          typeof parsed.googleSiteVerification !== "undefined" &&
+          typeof parsed.googleSiteVerification !== "string"
+        ) {
+          throw new Error("站点配置里的 Search Console 验证码必须是字符串。");
+        }
+
+        if (typeof parsed.adsensePublisherId !== "undefined" && typeof parsed.adsensePublisherId !== "string") {
+          throw new Error("站点配置里的 AdSense 发布商 ID 必须是字符串。");
+        }
+
         return parsed;
       }
 
@@ -1206,6 +1227,8 @@ const studioBridgeUrl = "http://127.0.0.1:4323";
       const siteUrl = (state.site.url || "").toLowerCase();
       const siteDomain = (state.site.domain || "").toLowerCase();
       const contactEmail = (state.site.contactEmail || "").toLowerCase();
+      const adsensePublisherId = (state.site.adsensePublisherId || "").trim();
+      const googleSiteVerification = (state.site.googleSiteVerification || "").trim();
 
       return [
         {
@@ -1225,6 +1248,18 @@ const studioBridgeUrl = "http://127.0.0.1:4323";
             Boolean(contactEmail) && !contactEmail.includes("example.com")
               ? "联系邮箱看起来可用于真实对外联系。"
               : "联系邮箱仍是示例值，送审前需要替换。"
+        },
+        {
+          key: "adsense-publisher",
+          label: "AdSense 发布商 ID",
+          ok: Boolean(adsensePublisherId),
+          detail: adsensePublisherId ? "已填写 AdSense 发布商 ID。" : "还没有填写 AdSense 发布商 ID。"
+        },
+        {
+          key: "gsc-verification",
+          label: "GSC 验证码",
+          ok: Boolean(googleSiteVerification),
+          detail: googleSiteVerification ? "已填写 Search Console 验证码。" : "还没有填写 Search Console 验证码。"
         },
         {
           key: "categories-present",
@@ -1586,6 +1621,8 @@ const studioBridgeUrl = "http://127.0.0.1:4323";
       siteFields.url.value = state.site.url || "";
       siteFields.contactEmail.value = state.site.contactEmail || "";
       siteFields.legalEntity.value = state.site.legalEntity || "";
+      siteFields.adsensePublisherId.value = state.site.adsensePublisherId || "";
+      siteFields.googleSiteVerification.value = state.site.googleSiteVerification || "";
       siteFields.description.value = state.site.description || "";
     }
 
